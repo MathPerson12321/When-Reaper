@@ -15,7 +15,7 @@ async function fetchJSON(path,path2){
   return await res.json();
 }
 
-async function writeData(path, data){
+async function writeData(path,path2){
   const response = await fetch(link+path2+path, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
@@ -215,7 +215,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("timeleft").innerHTML = res;
     } else {
       data.gamerunning = true;
-      await writeData("/gamedata");
+      await writeData("/gamedata",gamenum);
 
       document.getElementById("wait").style.display = "none";
       document.getElementById("game").style.display = "block";
