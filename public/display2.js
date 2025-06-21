@@ -11,12 +11,12 @@ const link = "https://reaperclone.onrender.com/";
 const gamenum = "game2";
 
 async function fetchJSON(path,path2){
-  const res = await fetch(`${link}${path2}${path}`);
+  const res = await fetch(link+path2+path);
   return await res.json();
 }
 
 async function writeData(path, data){
-  const response = await fetch(`${link}${gamenum}${path}`, {
+  const response = await fetch(link+path2+path, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify(data),
@@ -26,7 +26,6 @@ async function writeData(path, data){
 
 function mostrecentreapdisplay(){
   if (!reaps || Object.keys(reaps).length == 0){
-    console.log("No reaps yet.");
     return;
   }
 
@@ -34,18 +33,17 @@ function mostrecentreapdisplay(){
   let count = 1;
 
   for (let i = arr.length - 1; i >= 0 && count <= 10; i--){
-    console.log(arr[i])
     let [reapnum,details] = arr[i];
     if(!details.timestamp){
       let [num,details2] = details
       details = details2
-    }
+    } 
     const date = new Date(details.timestamp * 1000);
     const options = { month: "short", day: "2-digit" };
     const datePart = date.toLocaleDateString("en-US", options);
     const timePart = date.toTimeString().split(" ")[0];
-    const formatted = `${datePart}, ${timePart}`;
-    let str = `${details.user} reaped at ${formatted} and gained ${timetoseconds(details.timegain * 1000)}`;
+    const formatted = datePart + ", " + timePart;
+    let str = details.user + " reaped at " + formatted + " and gained " + timetoseconds(details.timegain * 1000);
 
     const element = document.getElementById(count);
     if (element) {
@@ -102,13 +100,6 @@ function makeLeaderboard(){
   }
 }
 
-function updatedata(data){
-  reaps = data.val();
-  let user = Object.entries(reaps)[Object.entries(reaps).length-1].user;
-  console.log(user+" reaped.");
-  mostrecentreapdisplay();
-}
-
 function timetoseconds(milliseconds){
   let seconds = Math.floor(milliseconds / 1000);
   let minutes = Math.floor(seconds / 60);
@@ -139,13 +130,11 @@ function timetoseconds(milliseconds){
 }
 
 async function reaped(){
-  const response = await fetch(`${link}${gamenum}/reap/${userId}`, {
+  const response = await fetch(link+gamenum+"/reap/"+userId, {
     method: "POST",
   });
 
   const result = await response.json();
-  console.log("Reap successful:", result);
-
   await updateAll();
 }
 
@@ -184,32 +173,24 @@ async function updateAll(){
   userlastreaps = await fetchJSON("/lastuserreap",gamenum);
   leaderboard = await fetchJSON("/leaderboard",gamenum);
 
-  console.log(data);
-  console.log(reaps);
-  console.log(userlastreaps);
-  console.log(leaderboard);
-
   makeLeaderboard();
   mostrecentreapdisplay();
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
   const user = await checkAuthAndRedirect();
-  console.log("Logged in user:", user);
   userId = user.uid;
   username = await fetchJSON("/"+userId,"getusername")
 
   await updateAll();
 
   // Initialize WebSocket
-  const socket = new WebSocket(`wss://reaperclone.onrender.com?game=${gamenum}`);
+  const socket = new WebSocket("wss://reaperclone.onrender.com?game=" + gamenum);
   socket.addEventListener("message", async (event) => {
     const msgData = JSON.parse(event.data);
     if (msgData.type === "reap"){
       const index = Object.keys(reaps).length + 1;
-      console.log(msgData)
       reaps[index] = msgData.reap;
-      console.log(reaps[index])
       const {user,timegain} = msgData.reap;
 
       if(!leaderboard[user]){
