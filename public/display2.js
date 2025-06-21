@@ -38,12 +38,12 @@ function mostrecentreapdisplay(){
       let [num,details2] = details
       details = details2
     } 
-    const date = new Date(details.timestamp * 1000);
+    const date = new Date(details.timestamp);
     const options = { month: "short", day: "2-digit" };
     const datePart = date.toLocaleDateString("en-US", options);
     const timePart = date.toTimeString().split(" ")[0];
     const formatted = datePart + ", " + timePart;
-    let str = details.user + " reaped at " + formatted + " and gained " + timetoseconds(details.timegain * 1000);
+    let str = details.user + " reaped at " + formatted + " and gained " + timetoseconds(details.timegain);
 
     const element = document.getElementById(count);
     if (element) {
@@ -143,7 +143,7 @@ function displayTime(ms){
 }
 
 function getTimeFromUnix(ms){
-  let time = ms - data.starttime * 1000;
+  let time = ms - data.starttime;
   if (reaps && Object.keys(reaps).length > 0){
     const keys = Object.keys(reaps).map((k) => parseInt(k));
     const max = Math.max(...keys);
@@ -152,18 +152,18 @@ function getTimeFromUnix(ms){
       let [num,lastreap2] = reaps[max];
       lastreap = lastreap2
     }
-    time = ms - lastreap.timestamp*1000;
+    time = ms - lastreap.timestamp;
   }
   return time;
 }
 
 function displayCooldown(ms){
-  let cooldownleft = data.cooldown * 1000 + (userlastreaps[username]*1000 || 0) - Date.now();
+  let cooldownleft = data.cooldown + (userlastreaps[username] || 0) - Date.now();
   document.getElementById("cd").innerHTML = "Cooldown: " + timetoseconds(cooldownleft) + " left";
 }
 
 function calcTime(){
-  return data.starttime * 1000 - Date.now();
+  return data.starttime - Date.now();
 }
 
 async function updateAll(){
@@ -221,7 +221,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("game").style.display = "block";
       displayTime(Date.now());
 
-      if(Date.now() - (userlastreaps[username]*1000 || 0) < data.cooldown * 1000){
+      if(Date.now() - (userlastreaps[username] || 0) < data.cooldown){
         document.getElementById("reapstuff").style.display = "none";
         document.getElementById("cooldown").style.display = "block";
         displayCooldown(Date.now());
