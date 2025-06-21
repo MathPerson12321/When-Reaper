@@ -89,7 +89,7 @@ async function isLoggedIn(id) {
 
 
 async function getGames() {
-  const now = Math.floor(Date.now() / 1000);
+  const now = Date.now();
   const snapshot = await db.ref().once("value");
 
   const games = snapshot.val();
@@ -104,7 +104,7 @@ async function getGames() {
       if (gameSnap.exists()) {
         gamedata = gameSnap.val();
       }
-      const starttime = gamedata.starttime*1000;
+      const starttime = gamedata.starttime;
       let running = false;
       if (now >= starttime) {
         running = true;
@@ -293,7 +293,7 @@ app.get("/game:gameid/reaps", async (req, res) => {
       const data = await loadData(gamenum);
       const now = Date.now();
   
-      if (!data || !data.gamerunning || now < data.starttime*1000) {
+      if (!data || !data.gamerunning || now < data.starttime) {
         return res.status(400).json({ error: "Game is not running"});
       }
       if(data.winner != ""){
@@ -312,7 +312,7 @@ app.get("/game:gameid/reaps", async (req, res) => {
   
       // Safe calculation for lastReapTimestamp:
       const reapTimestamps = Object.values(reaps).map(r => r.timestamp);
-      const lastReapTimestamp = reapTimestamps.length > 0 ? Math.max(...reapTimestamps) : data.starttime*1000;
+      const lastReapTimestamp = reapTimestamps.length > 0 ? Math.max(...reapTimestamps) : data.starttime;
   
       let timeGained = now - lastReapTimestamp;
       let bonuses = await getBonuses();
@@ -384,7 +384,7 @@ app.post("/game:gameid/gamedata", async (req, res) => {
         return res.status(400).json({ error: "No game data found."});
       }
   
-      if (currentTime >= data.starttime*1000) {
+      if (currentTime >= data.starttime) {
         data.gamerunning = true;
         await saveData(gamenum, data);
         return res.status(200).json({ message: "Game marked as running.", data});
