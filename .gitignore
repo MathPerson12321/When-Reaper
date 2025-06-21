@@ -3,7 +3,8 @@ firebase-adminsdk.json
 users.json
 data.json
 bonuses.json
-profanitydoc.json
+
+# Environment variables
 .env
 .DS_Store
 Thumbs.db
