@@ -1,0 +1,30 @@
+# Node.js dependencies
+node_modules/
+
+# Firebase secrets
+firebase-adminsdk.json
+
+# Local JSON data files (used as your database)
+users.json
+data.json
+bonuses.json
+
+# Environment variables
+.env
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor/IDE settings (optional, but recommended)
+.vscode/
+.idea/
+
+# System swap files
+*.swp
+*.swo
