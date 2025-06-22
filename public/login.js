@@ -11,6 +11,15 @@ async function fetchJSON(path) {
   return await res.json();
 }
 
+async function writeJSON(path, data) {
+  const res = await fetch(link + path, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
 const firebaseConfig = {
   apiKey: "AIzaSyASmVweFPm03Tizv6J9RMz5nR7THRx7pHU",
   authDomain: "reaper-clone.firebaseapp.com",
@@ -63,20 +72,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("senduser").addEventListener("click", async () => {
     const username = document.getElementById("usernamebox").value;
     const isValid = /^[a-z0-9]+$/i.test(username);
-
     if (!isValid) {
       console.log("Invalid username");
       return;
     }
-
     try {
       const id = auth.currentUser.uid;
       console.log(`Registering user "${username}" for ID: ${id}`);
-
-      const result = await fetchJSON("usercheck/" + username + "/" + id);
+  
+      const result = await writeJSON("usercheck", {username: username, userid: id});
       console.log("Registration result:", result);
     } catch (error) {
       console.error("Username submission error:", error);
     }
-  });
+  });  
 });

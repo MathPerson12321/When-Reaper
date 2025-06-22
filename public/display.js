@@ -15,7 +15,7 @@ async function fetchJSON(path,path2){
   return await res.json();
 }
 
-async function writeData(path,path2){
+async function writeData(path,path2,data){
   const response = await fetch(link+path2+path, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
@@ -130,9 +130,7 @@ function timetoseconds(milliseconds){
 }
 
 async function reaped(){
-  const response = await fetch(link+gamenum+"/reap/"+userId, {
-    method: "POST",
-  });
+  const response = await writeJSON("/reap/", gamenum, {user: userId});
 
   const result = await response.json();
   await updateAll();
