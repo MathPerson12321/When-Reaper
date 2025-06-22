@@ -131,8 +131,6 @@ function timetoseconds(milliseconds){
 
 async function reaped(){
   const response = await writeJSON("/reap/", gamenum, {user: userId});
-
-  const result = await response.json();
   await updateAll();
 }
 
