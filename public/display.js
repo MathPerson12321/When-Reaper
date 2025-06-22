@@ -209,7 +209,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("reapbutton").addEventListener("click", reaped);
 
   setInterval(async function () {
-    const unixtime = Math.floor(Date.now() / 1000);
+    const unixtime = Date.now();
     if (data.starttime > unixtime){
       const res = "Game starts in " + timetoseconds(calcTime());
       document.getElementById("timeleft").innerHTML = res;
