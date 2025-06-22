@@ -335,7 +335,7 @@ app.get("/game:gameid/reaps", async (req, res) => {
       const reapEntry = {
         user: username,
         timestamp: now,
-        timegain: timeGained,
+        timegain: timeGained/1000,
         bonus: endbonus,
       };
   
