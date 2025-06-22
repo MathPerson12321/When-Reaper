@@ -15,7 +15,7 @@ async function fetchJSON(path,path2){
   return await res.json();
 }
 
-async function writeData(path,path2,data){
+async function writeJSON(path,path2,data){
   const response = await fetch(link+path2+path, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
