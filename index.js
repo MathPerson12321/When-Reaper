@@ -345,7 +345,7 @@ app.get("/game:gameid/reaps", async (req, res) => {
       if (!leaderboard[username]) {
         leaderboard[username] = {time: 0, reapcount: 0};
       }
-      leaderboard[username].time += timeGained;
+      leaderboard[username].time += timeGained/1000;
       leaderboard[username].reapcount += 1;
   
       if (leaderboard[username].time >= data.endtime) {
