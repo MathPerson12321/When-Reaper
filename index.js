@@ -378,7 +378,7 @@ app.post("/game:gameid/reap", async (req, res) => {
   }
 });
 
-app.post("/game:gameid/gamedata", async (req, res) => {
+app.get("/game:gameid/gamedata", async (req, res) => {
     const gamenum = req.params.gameid;
     try {
       const currentTime = Date.now();

@@ -213,7 +213,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("timeleft").innerHTML = res;
     } else {
       data.gamerunning = true;
-      await writeData("/gamedata",gamenum);
+      await fetchJSON("/gamedata",gamenum);
 
       document.getElementById("wait").style.display = "none";
       document.getElementById("game").style.display = "block";
