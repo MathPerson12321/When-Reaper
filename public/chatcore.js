@@ -2,8 +2,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const chatContainer = document.createElement('div');
     chatContainer.style.width = '300px';
     chatContainer.style.height = '400px';
-    chatContainer.style.border = '1px solid #ccc';
-    chatContainer.style.borderRadius = '8px';
+    chatContainer.style.border = '2px solid #ccc';
+    chatContainer.style.borderRadius = '12px';
     chatContainer.style.display = 'flex';
     chatContainer.style.flexDirection = 'column';
     chatContainer.style.position = 'fixed';
@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
     const inputContainer = document.createElement('div');
     inputContainer.style.display = 'flex';
-    inputContainer.style.borderTop = '1px solid #ccc';
+    inputContainer.style.borderTop = '2px solid #ccc';
   
     //Input
     const input = document.createElement('input');
@@ -40,9 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
     button.innerText = 'Send';
     button.style.width = '60px';
     button.style.border = 'none';
-    button.style.background = '#007bff';
     button.style.color = '#fff';
-    button.style.cursor = 'pointer';
 
     inputContainer.appendChild(input);
     inputContainer.appendChild(button);
