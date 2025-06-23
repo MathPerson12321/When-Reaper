@@ -44,7 +44,7 @@ function mostrecentreapdisplay(){
     const timePart = date.toTimeString().split(" ")[0];
     const formatted = datePart + ", " + timePart;
     let str = details.user + " reaped at " + formatted + " and gained " + timetoseconds(details.timegain*1000);
-    if(details.bonustext != undefined){
+    if(details.bonustext){
       str += " " + details.bonustext
     }
 
