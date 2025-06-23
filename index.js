@@ -219,7 +219,7 @@ app.post("/:chatid/sendchatmessage", async (req, res) => {
   if(message.length == 0 || message.length > keycount || elapsed < 50){
     return res.json({msg:"Bro tried to bot chat messages on a useless game and still failed. How bad are you at ts gang 🥀"});
   }
-  const username = getUsername(id)
+  const username = await getUsername(id)
   /*await firestore.collection("users").doc(id).set({
     username: user,
     wins: 0,
@@ -300,7 +300,7 @@ app.get("/game:gameid/lastuserreap", async (req, res) => {
 
 app.get("/getusername/:userid", async (req, res) => {
   const userId = req.params.userid;
-  let username = getUsername(userId)
+  let username = await getUsername(userId)
   return res.json(username);
 });
   
@@ -312,7 +312,7 @@ app.post("/game:gameid/reap", async (req, res) => {
     return res.status(400).json({ error: "Missing user ID in request body" });
   }
 
-  const username = getUsername(userId)
+  const username = await getUsername(userId)
 
   try {
     const data = await loadData(gamenum);
