@@ -348,15 +348,11 @@ app.post("/game:gameid/reap", async (req, res) => {
       let val = bonuses[key] * 10;
       let rand = Math.floor(Math.random() * 1000) + 1;
       if (rand <= val) {
-        console.log(key)
-        console.log(counter)
         endbonus = counter;
         text = key;
       }
       counter += 1;
     }
-    console.log(endbonus)
-    console.log(text)
     timeGained *= endbonus
 
     const reapNumber = Object.keys(reaps).length + 1;
