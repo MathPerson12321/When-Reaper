@@ -339,7 +339,8 @@ app.post("/game:gameid/reap", async (req, res) => {
     const lastReapTimestamp = reapTimestamps.length > 0 ? Math.max(...reapTimestamps) : data.starttime;
 
     let timeGained = now - lastReapTimestamp;
-    let bonuses = await getBonuses();
+    let rawbonuses = await getBonuses();
+    let bonuses = Object.entries(rawbonuses).sort((a, b) => b[1] - a[1]);
     let endbonus = 1;
     let counter = 2;
     let text = "";
