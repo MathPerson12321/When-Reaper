@@ -311,7 +311,7 @@ app.post("/game:gameid/reap", async (req, res) => {
     return res.status(400).json({ error: "Missing user ID in request body" });
   }
 
-  const username = await getUsername(userId)
+  const username = await getUsername(userId);
 
   try {
     const data = await loadData(gamenum);
@@ -353,13 +353,15 @@ app.post("/game:gameid/reap", async (req, res) => {
       }
       counter += 1;
     }
-    timeGained *= endbonus
+
+    timeGained *= endbonus;
+    const timeGainedSec = Math.round(timeGained / 1000 * 1000) / 1000;
 
     const reapNumber = Object.keys(reaps).length + 1;
     const reapEntry = {
       user: username,
       timestamp: now,
-      timegain: timeGained / 1000,
+      timegain: timeGainedSec,
       bonus: endbonus,
       bonustext: text
     };
@@ -370,7 +372,7 @@ app.post("/game:gameid/reap", async (req, res) => {
     if (!leaderboard[username]) {
       leaderboard[username] = { time: 0, reapcount: 0 };
     }
-    leaderboard[username].time += timeGained / 1000;
+    leaderboard[username].time = Math.round((leaderboard[username].time + timeGainedSec) * 1000) / 1000;
     leaderboard[username].reapcount += 1;
 
     if (leaderboard[username].time >= data.endtime) {
