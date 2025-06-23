@@ -1,4 +1,11 @@
-document.addEventListener("DOMContentLoaded", () => {
+import {checkAuthAndRedirect} from "./authcheck.js";
+
+document.addEventListener("DOMContentLoaded", async() => {
+    const user = await checkAuthAndRedirect();
+    userId = user.uid;
+    username = await fetchJSON("/"+userId,"getusername")
+
+    //Chat
     const chatContainer = document.createElement("div");
     chatContainer.style.width = "300px";
     chatContainer.style.height = "400px";
@@ -47,5 +54,60 @@ document.addEventListener("DOMContentLoaded", () => {
     inputContainer.appendChild(input);
     inputContainer.appendChild(button);
     chatContainer.appendChild(inputContainer);
+
+    let typing = false;
+    let start = null;
+    let keycount = 0;
+
+    input.addEventListener("keydown", () => {
+        if(!typing){
+            typing = true;
+            start = Date.now();
+        }
+        keycount++;
+    });
+    button.addEventListener("click", sendMessage);
+    input.addEventListener("keydown", (e) => {
+        if(e.key == "Enter"){
+            sendMessage();
+        }
+    });
+
+    async function sendMessage() {
+        const message = input.value.trim();
+        const elapsed = Date.now() - start;
+        if(message.length == 0 || message.length > keycount || elapsed < 50){
+            alert("Stop botting.");
+            return;
+        }
+        const data = {
+            userId: localStorage.getItem("userId"),
+            username: localStorage.getItem("username"),
+            message,
+            keycount,
+            elapsed
+        };
+        try{
+            const res = await fetch(window.location.href+"sendchatmessage", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(data)
+            });
+
+            const result = await res.json();
+            if(!res.ok){
+                alert(result.error || "Failed to send message.");
+            }else{
+                if(result != ""){
+                    alert(result)
+                }
+                input.value = "";
+                typing = false;
+                keyCount = 0;
+            }
+        }catch(err){
+            console.error("Error sending message:", err);
+        }
+    }
 });
   

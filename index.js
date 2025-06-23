@@ -210,8 +210,15 @@ app.get("/users/:userid", async (req, res) => {
   res.json(registered);
 });
 
+app.post("/sendchatmessage", async (req, res) => {
+  const {userId:id,username:name,message:message,keycount:keycount,elapsed:elapsed} = req.body
+  if(message.length == 0 || message.length > keycount || elapsed < 50){
+    res.json({msg:"Bro tried to bot chat messages on a useless game and still failed. How bad are you at ts gang 🥀"});
+  }
+})
+
 app.post("/usercheck", async (req, res) => {
-  const {username:name, userid:id} = req.body;
+  const {username:name,userid:id} = req.body;
   const json = path.join(__dirname, "profanitydoc.json");
   const file = await readFile(json, "utf-8");
   const bannedwords = JSON.parse(file);
@@ -229,7 +236,7 @@ app.post("/usercheck", async (req, res) => {
   return res.status(200).json({ allowed: "Good!" });
 });
 
-app.get("/game:gameid", (req, res) => {
+app.get("/game:gameid/", (req, res) => {
     const gameid = req.params.gameid;
     res.sendFile(path.join(__dirname, "public", "gamepage"+gameid+".html"));
 });
