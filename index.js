@@ -355,12 +355,15 @@ app.post("/game:gameid/reap", async (req, res) => {
       counter += 1;
     }
 
+    timeGained *= endbonus
+
     const reapNumber = Object.keys(reaps).length + 1;
     const reapEntry = {
       user: username,
       timestamp: now,
       timegain: timeGained / 1000,
       bonus: endbonus,
+      bonustext: text
     };
 
     reaps[reapNumber] = reapEntry;
