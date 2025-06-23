@@ -43,7 +43,7 @@ function mostrecentreapdisplay(){
     const datePart = date.toLocaleDateString("en-US", options);
     const timePart = date.toTimeString().split(" ")[0];
     const formatted = datePart + ", " + timePart;
-    let str = details.user + " reaped at " + formatted + " and gained " + timetoseconds(details.timegain*1000) + details.bonustext;
+    let str = details.user + " reaped at " + formatted + " and gained " + timetoseconds(details.timegain*1000) + ((" " + details.bonustext) || "");
 
     const element = document.getElementById(count);
     if (element) {
