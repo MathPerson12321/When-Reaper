@@ -50,7 +50,6 @@ function broadcast(obj) {
 async function getBonuses(){
   let data = await firestore.collection("bonuses").doc("multipliers").get();
   const bonuses = data.data()
-  console.log(bonuses)
   return bonuses
 }
 
