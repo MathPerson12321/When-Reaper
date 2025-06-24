@@ -352,7 +352,7 @@ app.post("/game:gameid/reap", async (req, res) => {
       console.log(rand)
       if (rand <= val) {
         endbonus = counter;
-        text = key;
+        text = bonuses[key][0];
       }
       counter += 1;
     }
