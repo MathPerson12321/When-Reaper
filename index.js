@@ -211,10 +211,9 @@ app.get("/users/:userid", async (req, res) => {
   res.json(registered);
 });
 
-app.post("/:chatid/sendchatmessage", async (req, res) => {
-  const chatid = req.params.chatid
+app.post("/sendchatmessage", async (req, res) => {
   console.log(chatid)
-  const {userId:id,message:message,keycount:keycount,elapsed:elapsed} = req.body
+  const {userId:id,message:message,keycount:keycount,elapsed:elapsed,url=link} = req.body
   if(message.length == 0 || message.length > keycount || elapsed < 50){
     return res.json({msg:"Bro tried to bot chat messages on a useless game and still failed. How bad are you at ts gang 🥀"});
   }

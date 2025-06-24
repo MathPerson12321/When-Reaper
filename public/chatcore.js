@@ -1,4 +1,5 @@
 import {checkAuthAndRedirect} from "./authcheck.js";
+const link = "https://reaperclone.onrender.com/";
 
 document.addEventListener("DOMContentLoaded", async() => {
     const user = await checkAuthAndRedirect();
@@ -88,10 +89,11 @@ document.addEventListener("DOMContentLoaded", async() => {
             elapsed
         };
         try{
-            const res = await fetch(window.location.href+"sendchatmessage", {
+            const res = await fetch(link+"sendchatmessage", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(data)
+                body: JSON.stringify(data),
+                url: window.location.href
             });
 
             const result = await res.json();
