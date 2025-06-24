@@ -346,9 +346,8 @@ app.post("/game:gameid/reap", async (req, res) => {
     let text = "";
 
     for (const key in bonuses) {
-      console.log(key)
-      console.log(bonuses[key][1])
-      let val = bonuses[key] * 10;
+      console.log(bonuses[key])
+      let val = bonuses[key][1] * 10;
       let rand = Math.floor(Math.random() * 1000) + 1;
       console.log(rand)
       if (rand <= val) {
