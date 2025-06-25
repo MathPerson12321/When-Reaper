@@ -74,11 +74,11 @@ document.addEventListener("DOMContentLoaded", async() => {
     button.addEventListener("click", sendMessage);
     input.addEventListener("keydown", (e) => {
         if(e.key == "Enter"){
-            sendMessage(keycount);
+            sendMessage();
         }
     });
 
-    async function sendMessage(keycount) {
+    async function sendMessage() {
         const message = input.value.trim();
         const elapsed = Date.now() - start;
         if(message.length == 0 || message.length > keycount || elapsed < 50){
@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", async() => {
                 }
                 input.value = "";
                 typing = false;
-                keyCount = 0;
+                keycount = 0;
             }
         }catch(err){
             console.error("Error sending message:", err);
