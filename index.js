@@ -12,6 +12,8 @@ import {fileURLToPath} from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const link = "https://reaperclone.onrender.com/";
+
 // Firebase Admin SDK initialization
 const serviceAccount = JSON.parse(
   fs.readFileSync(path.join(__dirname, "firebase-adminsdk.json"), "utf-8")
@@ -212,12 +214,19 @@ app.get("/users/:userid", async (req, res) => {
 });
 
 app.post("/sendchatmessage", async (req, res) => {
-  console.log(chatid)
-  const {userId:id,message:message,keycount:keycount,elapsed:elapsed,url=link} = req.body
+  const {userId:id,message:message,keycount:keycount,elapsed:elapsed,url=curlink} = req.body
   if(message.length == 0 || message.length > keycount || elapsed < 50){
     return res.json({msg:"Bro tried to bot chat messages on a useless game and still failed. How bad are you at ts gang 🥀"});
   }
   const username = await getUsername(id)
+  const split = curlink.split("/");
+  const chat = ""
+  if(split[split.length-1].includes(".com")){
+    chat = "lobby"
+  }else{
+    chat = split[split.length-1]
+  }
+  console.log(chat)
   //const chat = 
   /*await firestore.collection("users").doc(id).set({
     username: user,
