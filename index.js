@@ -240,6 +240,8 @@ app.post("/sendchatmessage", async (req, res) => {
     totaltimessniped: 0,
     lastActive: admin.firestore.FieldValue.serverTimestamp()
   });*/
+
+  res.json({msg: "Message received."});
 })
 
 app.post("/usercheck", async (req, res) => {

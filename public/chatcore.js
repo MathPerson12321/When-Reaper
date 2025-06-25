@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded", async() => {
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(data),
             });
-
+            
             const result = await res.json();
             if(!res.ok){
                 alert(result.error || "Failed to send message.");
