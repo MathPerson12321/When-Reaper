@@ -221,13 +221,13 @@ app.post("/sendchatmessage", async (req, res) => {
   const username = await getUsername(id)
   const split = curlink.split("/");
   let chat = ""
+  console.log(split)
   if(split[split.length-1].includes(".com")){
     chat = "lobby"
   }else{
     chat = split[split.length-1]
   }
   console.log(chat)
-  //const chat = 
   /*await firestore.collection("users").doc(id).set({
     username: user,
     wins: 0,
