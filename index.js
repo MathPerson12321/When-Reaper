@@ -166,7 +166,6 @@ async function saveData(gamenum, data) {
 }
 
 async function getUsername(userId){
-  console.log(userId)
   const userdoc = await firestore.collection('users').doc(userId).get();
   const userData = userdoc.data();
   const username = userData.username;
@@ -219,7 +218,6 @@ app.post("/sendchatmessage", async (req, res) => {
   if(message.length == 0 || message.length > keycount || elapsed < 50){
     return res.json({msg:"Bro tried to bot chat messages on a useless game and still failed. How bad are you at ts gang 🥀"});
   }
-  console.log(id)
   const username = await getUsername(id)
   const split = curlink.split("/");
   const chat = ""

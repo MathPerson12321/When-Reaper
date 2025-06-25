@@ -9,7 +9,6 @@ async function fetchJSON(path,path2){
 document.addEventListener("DOMContentLoaded", async() => {
     const user = await checkAuthAndRedirect();
     let userId = user.uid;
-    let username = await fetchJSON("/"+userId,"getusername")
 
     //Chat
     const chatContainer = document.createElement("div");
@@ -87,8 +86,7 @@ document.addEventListener("DOMContentLoaded", async() => {
             return;
         }
         const data = {
-            userId: localStorage.getItem("userId"),
-            username: localStorage.getItem("username"),
+            userId: userId,
             message,
             keycount,
             elapsed,
@@ -100,7 +98,7 @@ document.addEventListener("DOMContentLoaded", async() => {
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(data),
             });
-            
+
             const result = await res.json();
             if(!res.ok){
                 alert(result.error || "Failed to send message.");
