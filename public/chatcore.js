@@ -1,6 +1,11 @@
 import {checkAuthAndRedirect} from "./authcheck.js";
 const link = "https://reaperclone.onrender.com/";
 
+async function fetchJSON(path,path2){
+    const res = await fetch(link+path2+path);
+    return await res.json();
+}
+
 document.addEventListener("DOMContentLoaded", async() => {
     const user = await checkAuthAndRedirect();
     let userId = user.uid;
