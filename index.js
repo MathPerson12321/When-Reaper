@@ -220,7 +220,7 @@ app.post("/sendchatmessage", async (req, res) => {
   }
   const username = await getUsername(id)
   const split = curlink.split("/");
-  const chat = ""
+  let chat = ""
   if(split[split.length-1].includes(".com")){
     chat = "lobby"
   }else{
