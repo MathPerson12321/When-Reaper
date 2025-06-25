@@ -74,11 +74,11 @@ document.addEventListener("DOMContentLoaded", async() => {
     button.addEventListener("click", sendMessage);
     input.addEventListener("keydown", (e) => {
         if(e.key == "Enter"){
-            sendMessage();
+            sendMessage(keycount);
         }
     });
 
-    async function sendMessage() {
+    async function sendMessage(keycount) {
         const message = input.value.trim();
         const elapsed = Date.now() - start;
         if(message.length == 0 || message.length > keycount || elapsed < 50){
