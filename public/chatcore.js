@@ -91,14 +91,14 @@ document.addEventListener("DOMContentLoaded", async() => {
             username: localStorage.getItem("username"),
             message,
             keycount,
-            elapsed
+            elapsed,
+            url: window.location.href
         };
         try{
             const res = await fetch(link+"sendchatmessage", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(data),
-                url: window.location.href
             });
 
             const result = await res.json();
