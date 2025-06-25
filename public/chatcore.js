@@ -3,8 +3,8 @@ const link = "https://reaperclone.onrender.com/";
 
 document.addEventListener("DOMContentLoaded", async() => {
     const user = await checkAuthAndRedirect();
-    userId = user.uid;
-    username = await fetchJSON("/"+userId,"getusername")
+    let userId = user.uid;
+    let username = await fetchJSON("/"+userId,"getusername")
 
     //Chat
     const chatContainer = document.createElement("div");
