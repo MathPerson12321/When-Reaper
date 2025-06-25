@@ -13,6 +13,7 @@ async function fetchJSON(path){
 export async function checkAuthAndRedirect() {
     return new Promise((resolve) => {
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        console.log(user)
         if (!user) {
           console.log("No user detected - redirecting to login");
           unsubscribe();  // stop listening

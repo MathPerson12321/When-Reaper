@@ -218,6 +218,7 @@ app.post("/sendchatmessage", async (req, res) => {
     return res.json({msg:"Bro tried to bot chat messages on a useless game and still failed. How bad are you at ts gang 🥀"});
   }
   const username = await getUsername(id)
+  //const chat = 
   /*await firestore.collection("users").doc(id).set({
     username: user,
     wins: 0,
