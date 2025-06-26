@@ -330,13 +330,6 @@ app.get("/game:gameid/", (req, res) => {
     const gameid = req.params.gameid;
     res.sendFile(path.join(__dirname, "public", "gamepage"+gameid+".html"));
 });
-  
-app.get("/game:gameid/gamedata", async (req, res) => {
-    const gamenum = req.params.gameid;
-    const d = await loadData(gamenum);
-    if (!d) return res.status(404).json({ error: "Game data not found"});
-    res.json(d);
-});
 
 app.get("/game:gameid/leaderboard", async (req, res) => {
     const gamenum = req.params.gameid;
@@ -450,7 +443,7 @@ app.post("/game:gameid/reap", async (req, res) => {
     leaderboard[username].time = Math.round((leaderboard[username].time + timeGainedSec) * 1000) / 1000;
     leaderboard[username].reapcount += 1;
 
-    if (leaderboard[username].time >= data.endtime) {
+    if (leaderboard[username].time*1000 >= data.endtime) {
       data.gamerunning = false;
       data.gameendtime = now;
       data.winner = username;
