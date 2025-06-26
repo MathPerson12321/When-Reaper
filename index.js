@@ -469,11 +469,11 @@ app.post("/game:gameid/reap", async (req, res) => {
   }
 });
 
-app.get("/game:gameid/gamedata", async (req, res) => {
+app.get("/:gameid/gamedata", async (req, res) => {
     const gamenum = req.params.gameid;
     try {
       const currentTime = Date.now();
-      let data = await loadData("game"+gamenum);
+      let data = await loadData(gamenum);
   
       if (!data) {
         return res.status(400).json({ error: "No game data found."});
@@ -481,7 +481,7 @@ app.get("/game:gameid/gamedata", async (req, res) => {
   
       if (currentTime >= data.starttime) {
         data.gamerunning = true;
-        await saveData("game"+gamenum, data);
+        await saveData(gamenum, data);
         return res.status(200).json({ message: "Game marked as running.", data});
       } else {
         return res.status(400).json({ error: "Game hasn't started yet."});
