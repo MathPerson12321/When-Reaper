@@ -82,6 +82,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   
       const result = await writeJSON("usercheck", {username: username, userid: id});
       console.log("Registration result:", result);
+      if(!result.success){
+        document.getElementById("error").innerHTML = result.message;
+      }
     } catch (error) {
       console.error("Username submission error:", error);
     }

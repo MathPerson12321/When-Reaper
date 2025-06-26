@@ -56,6 +56,10 @@ async function getBonuses(){
 }
 
 async function addUser(user, id) {
+  let users = await getUsers()
+  if(users.find(u => u.id === id)){
+    return {success:false, message:"Pick a different username dumbo."}
+  }
   try{
     await firestore.collection("users").doc(id).set({
       username: user,
@@ -67,7 +71,7 @@ async function addUser(user, id) {
       gamesplayed: 0,
       totalsnipes: 0,
       totaltimessniped: 0,
-      lastActive: admin.firestore.FieldValue.serverTimestamp()
+      timejoined: admin.firestore.FieldValue.serverTimestamp()
     });
     return {success:true};
   }catch(err){
@@ -117,6 +121,66 @@ async function getGames() {
    })
   );
   return gameinfo;
+}
+
+async function renameLeaderboardKey(gameId,oldKey,newKey) {
+  const oldRef = ref(db, `${gameId}/leaderboard/${oldKey}`);
+  const newRef = ref(db, `${gameId}/leaderboard/${newKey}`);
+
+  try {
+    const snapshot = await get(oldRef);
+
+    if (!snapshot.exists()) {
+      console.error("Old key does not exist");
+      return;
+    }
+
+    const value = snapshot.val();
+
+    //Set the value under the new key
+    await set(newRef, value);
+
+    //Remove the old key
+    await remove(oldRef);
+
+    console.log(`Renamed ${oldKey} to ${newKey}`);
+  } catch (err) {
+    console.error("Error renaming key:", err);
+  }
+}
+
+async function updateReapsUsername(gameId, oldUsername, newUsername) {
+  const reapsRef = ref(db, `${gameId}/reaps`);
+  const snapshot = await get(reapsRef);
+
+  if (!snapshot.exists()) {
+    console.error("No reaps found.");
+    return;
+  }
+
+  const reaps = snapshot.val();
+  const updates = {};
+
+  // Build update object
+  for (const [reapId, reapData] of Object.entries(reaps)) {
+    if (reapData.username === oldUsername) {
+      updates[`${gameId}/reaps/${reapId}/user`] = newUsername;
+    }
+  }
+
+  if (Object.keys(updates).length === 0) {
+    console.log("No usernames matched to update.");
+    return;
+  }
+
+  // Apply updates
+  await update(ref(db), updates);
+  console.log(`Updated usernames from '${oldUsername}' to '${newUsername}'`);
+}
+
+async function replaceReaps(olduser,newuser,gamenum){
+  await renameLeaderboardKey(gamenum,olduser,newuser);
+  await updateReapsUsername(gamenum,olduser,newuser);
 }
 
 async function getUsers() {
@@ -472,4 +536,10 @@ app.use((req, res, next) => {
 
 server.listen(PORT, () => {
   console.log(`Reaper backend running on port ${PORT}`);
+
+  replaceReaps("aiden0626", "yaxuan", "game1").then(() => {
+    console.log("✅ replaceReaps done");
+  }).catch(err => {
+    console.error("❌ replaceReaps error:", err);
+  });
 });
