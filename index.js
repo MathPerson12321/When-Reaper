@@ -57,8 +57,12 @@ async function getBonuses(){
 
 async function addUser(user, id) {
   let users = await getUsers()
-  if(users.find(u => u.id === id)){
-    return {success:false, message:"Pick a different username dumbo."}
+  const existing = await firestore.collection("users")
+  .where("username", "==", user)
+  .get();
+
+  if (!existing.empty) {
+    return { success: false, message: "Pick a different username dumbo, be creative"};
   }
   try{
     await firestore.collection("users").doc(id).set({
