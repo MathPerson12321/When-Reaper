@@ -208,12 +208,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   setInterval(async function () {
     const unixtime = Date.now();
+    document.getElementById("desc").innerHTML = data.description;
     if (data.starttime > unixtime){
       const res = "Game starts in " + timetoseconds(calcTime());
       document.getElementById("timeleft").innerHTML = res;
+      data.gamerunning = false;
     } else {
       data.gamerunning = true;
-      await fetchJSON("/gamedata",gamenum);
+      data = await fetchJSON("/gamedata",gamenum);
 
       document.getElementById("wait").style.display = "none";
       document.getElementById("game").style.display = "block";
