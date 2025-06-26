@@ -124,8 +124,8 @@ async function getGames() {
 }
 
 async function renameLeaderboardKey(gameId,oldKey,newKey) {
-  const oldRef = ref(db, `${gameId}/leaderboard/${oldKey}`);
-  const newRef = ref(db, `${gameId}/leaderboard/${newKey}`);
+  const oldRef = db.ref(`${gameId}/leaderboard/${oldKey}`);
+  const newRef = db.ref(`${gameId}/leaderboard/${newKey}`);
 
   try {
     const snapshot = await get(oldRef);
@@ -150,8 +150,8 @@ async function renameLeaderboardKey(gameId,oldKey,newKey) {
 }
 
 async function updateReapsUsername(gameId, oldUsername, newUsername) {
-  const reapsRef = ref(db, `${gameId}/reaps`);
-  const snapshot = await get(reapsRef);
+  const reapsRef = db.ref(`${gameId}/reaps`);
+  const snapshot = await reapsRef.get();
 
   if (!snapshot.exists()) {
     console.error("No reaps found.");
