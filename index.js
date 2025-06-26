@@ -123,12 +123,12 @@ async function getGames() {
   return gameinfo;
 }
 
-async function renameLeaderboardKey(gameId,oldKey,newKey) {
+async function renameLeaderboardKey(gameId, oldKey, newKey) {
   const oldRef = db.ref(`${gameId}/leaderboard/${oldKey}`);
   const newRef = db.ref(`${gameId}/leaderboard/${newKey}`);
 
   try {
-    const snapshot = await get(oldRef);
+    const snapshot = await oldRef.once("value"); // ✅ use `.once("value")` in admin SDK
 
     if (!snapshot.exists()) {
       console.error("Old key does not exist");
@@ -137,11 +137,8 @@ async function renameLeaderboardKey(gameId,oldKey,newKey) {
 
     const value = snapshot.val();
 
-    //Set the value under the new key
-    await set(newRef, value);
-
-    //Remove the old key
-    await remove(oldRef);
+    await newRef.set(value);      // ✅ set value to new key
+    await oldRef.remove();        // ✅ delete old key
 
     console.log(`Renamed ${oldKey} to ${newKey}`);
   } catch (err) {
@@ -151,7 +148,7 @@ async function renameLeaderboardKey(gameId,oldKey,newKey) {
 
 async function updateReapsUsername(gameId, oldUsername, newUsername) {
   const reapsRef = db.ref(`${gameId}/reaps`);
-  const snapshot = await reapsRef.get();
+  const snapshot = await reapsRef.once("value"); // ✅
 
   if (!snapshot.exists()) {
     console.error("No reaps found.");
@@ -161,10 +158,9 @@ async function updateReapsUsername(gameId, oldUsername, newUsername) {
   const reaps = snapshot.val();
   const updates = {};
 
-  // Build update object
   for (const [reapId, reapData] of Object.entries(reaps)) {
-    if (reapData.username === oldUsername) {
-      updates[`${gameId}/reaps/${reapId}/user`] = newUsername;
+    if (reapData.user === oldUsername) {
+      updates[`${reapId}/user`] = newUsername;
     }
   }
 
@@ -173,8 +169,7 @@ async function updateReapsUsername(gameId, oldUsername, newUsername) {
     return;
   }
 
-  // Apply updates
-  await update(ref(db), updates);
+  await reapsRef.update(updates); // ✅ apply batch update
   console.log(`Updated usernames from '${oldUsername}' to '${newUsername}'`);
 }
 
