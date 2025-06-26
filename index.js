@@ -532,9 +532,9 @@ app.use((req, res, next) => {
 server.listen(PORT, () => {
   console.log(`Reaper backend running on port ${PORT}`);
 
-  replaceReaps("aiden0626", "yaxuan", "game1").then(() => {
+  /*replaceReaps("aiden0626", "yaxuan", "game1").then(() => {
     console.log("✅ replaceReaps done");
   }).catch(err => {
     console.error("❌ replaceReaps error:", err);
-  });
+  });*/
 });
