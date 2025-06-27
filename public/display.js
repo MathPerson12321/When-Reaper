@@ -167,7 +167,7 @@ function calcTime(){
 
 async function updateAll(){
   data = await fetchJSON("/gamedata",gamenum);
-  console.log(data.data)
+  data = data.data
   reaps = await fetchJSON("/reaps",gamenum);
   reaps = Object.entries(reaps).filter(([_, val]) => val !== null);
   userlastreaps = await fetchJSON("/lastuserreap",gamenum);
