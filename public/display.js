@@ -209,7 +209,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   setInterval(async function () {
     const unixtime = Date.now();
     data = await fetchJSON("/gamedata",gamenum);
-    console.log(data)
     document.getElementById("desc").innerHTML = data.description;
     if (data.starttime > unixtime){
       const res = "Game starts in " + timetoseconds(calcTime());
