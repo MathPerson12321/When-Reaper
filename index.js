@@ -473,7 +473,7 @@ app.get("/:gameid/gamedata", async (req, res) => {
     const gamenum = req.params.gameid.replace("game", "");
     try {
       const currentTime = Date.now();
-      let data = await loadData(gamenum);
+      data = await loadData(gamenum);
       if (!data) {
         return res.status(400).json({ error: "No game data found."});
       }
