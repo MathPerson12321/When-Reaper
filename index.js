@@ -473,13 +473,16 @@ app.get("/:gameid/gamedata", async (req, res) => {
     const gamenum = req.params.gameid.replace("game", "");
     try {
       const currentTime = Date.now();
-      data = await loadData(gamenum);
+      let data = await loadData(gamenum);
+      console.log(data)
       if (!data) {
         return res.status(400).json({ error: "No game data found."});
       }
   
       if (currentTime >= data.starttime) {
-        data.gamerunning = true;
+        if(data.gamerunning == false){
+          data.gamerunning = true;
+        }
         await saveData(gamenum, data);
         return res.status(200).json({ message: "Game marked as running.", data});
       } else {
