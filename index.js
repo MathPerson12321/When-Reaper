@@ -481,12 +481,10 @@ app.get("/:gameid/gamedata", async (req, res) => {
       if (currentTime >= data.starttime) {
         if(data.gamerunning == false){
           data.gamerunning = true;
+          await saveData(gamenum, data);
         }
-        await saveData(gamenum, data);
-        return res.status(200).json(data);
-      } else {
-        return res.status(400).json({ error: "Game hasn't started yet."});
       }
+      return res.status(200).json(data);
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Internal server error"});
