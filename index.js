@@ -483,6 +483,7 @@ app.get("/:gameid/gamedata", async (req, res) => {
         if(data.gamerunning == false){
           data.gamerunning = true;
         }
+        console.log(data)
         await saveData(gamenum, data);
         return res.status(200).json({ message: "Game marked as running.", data});
       } else {
