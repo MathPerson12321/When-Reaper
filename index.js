@@ -470,7 +470,8 @@ app.post("/game:gameid/reap", async (req, res) => {
 });
 
 app.get("/:gameid/gamedata", async (req, res) => {
-    //const gamenum = req.params.gameid.replace("game", "");
+    const gamenum = req.params.gameid.replace("game", "");
+    console.log(gamenum)
     try {
       const currentTime = Date.now();
       let data = await loadData(gamenum);
