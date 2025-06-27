@@ -208,7 +208,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   setInterval(async function () {
     const unixtime = Date.now();
-    data = await fetchJSON("/gamedata",gamenum).data;
+    data = await fetchJSON("/gamedata",gamenum);
     console.log(data)
     document.getElementById("desc").innerHTML = data.description;
     if (data.starttime > unixtime){
