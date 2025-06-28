@@ -431,6 +431,7 @@ app.post("/game:gameid/reap", async (req, res) => {
     for (const key in bonuses) {
       const val = bonuses[key][1] * 10;
       const rand = Math.floor(Math.random() * 1000) + 1;
+      console.log([val,rand])
       if (rand <= val) {
         endbonus = counter;
         text = bonuses[key][0];
@@ -443,11 +444,11 @@ app.post("/game:gameid/reap", async (req, res) => {
     if(endbonus == 1){
       //Divide
       //[Value, chance]
-      const bonuses = Object.entries(rawbonuses).sort((a, b) => b[1] - a[1]);
       for (const key in divisors) {
         const divide = bonuses[key][1][0];
         const val = bonuses[key][1][1] * 10;
         const rand = Math.floor(Math.random() * 1000) + 1;
+        console.log["D",val,rand]
         if (rand <= val) {
           divider = divide;
           text = bonuses[key][0];
