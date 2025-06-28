@@ -445,6 +445,7 @@ app.post("/game:gameid/reap", async (req, res) => {
       //Divide
       //[Value, chance]
       for (const key in divisors) {
+        console.log(bonuses[key][1])
         const divide = bonuses[key][1][0];
         const val = bonuses[key][1][1] * 10;
         const rand = Math.floor(Math.random() * 1000) + 1;
