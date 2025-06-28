@@ -406,7 +406,7 @@ app.post("/game:gameid/reap", async (req, res) => {
     const reaps = await loadReaps(gamenum);
     const leaderboard = await loadLeaderboard(gamenum);
 
-    const userLastReap = lastUserReaps[userId] || 0;
+    const userLastReap = lastUserReaps[username] || 0;
     if (now - userLastReap < data.cooldown) {
       const waitTime = data.cooldown - (now - userLastReap);
       return res.status(429).json({ error: `Cooldown active. Wait ${waitTime} ms` });
@@ -448,7 +448,7 @@ app.post("/game:gameid/reap", async (req, res) => {
     };
 
     reaps[reapNumber] = reapEntry;
-    lastUserReaps[userId] = now;
+    lastUserReaps[username] = now;
 
     if (!leaderboard[username]) {
       leaderboard[username] = { time: 0, reapcount: 0 };
@@ -484,6 +484,7 @@ app.post("/game:gameid/reap", async (req, res) => {
     reapingLocks.delete(userId);
   }
 });
+
 
 app.get("/:gameid/gamedata", async (req, res) => {
     const gamenum = req.params.gameid.replace("game", "");
