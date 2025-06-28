@@ -39,8 +39,8 @@ const PORT = process.env.PORT || 10000;
 
 // Middleware to authenticate Firebase ID token
 async function authenticateToken(req, res, next) {
-  const idToken =
-    req.body.idToken || req.headers.authorization?.split("Bearer")[1];
+  const authHeader = req.headers.authorization || "";
+  const idToken = req.body.idToken || (authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : null);
 
   if (!idToken) {
     return res.status(401).json({error:"Missing ID token" });
