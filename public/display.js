@@ -225,7 +225,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  document.getElementById("reapbutton").addEventListener("click", reaped);
+  document.getElementById("reapbutton").addEventListener("click", (e) => {
+    if (!e.isTrusted) {
+      return;
+    }
+    reaped();
+  });
 
   setInterval(async function () {
     const now = Date.now();
