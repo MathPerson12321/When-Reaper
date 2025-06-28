@@ -196,6 +196,20 @@ async function saveData(gamenum, data) {
   await db.ref(`game${gamenum}/gamedata`).update(data);
 }
 
+function getChat(curlink){
+  const split = curlink.split("/");
+  if (split[split.length - 1] ==="") {
+    split.pop();
+  }
+  let chat ="";
+  if (split[split.length - 1].includes(".com")) {
+    chat ="lobby";
+  } else {
+    chat = split[split.length - 1];
+  }
+  return chat
+}
+
 // ------------------ WebSocket connection logs ------------------
 
 wss.on("connection", (ws) => {
@@ -235,6 +249,42 @@ app.get("/users/:userid", async (req, res) => {
   res.json(registered);
 });
 
+app.get("/users/:userid", async (req, res) => {
+  const id = req.params.userid;
+  const registered = await isLoggedIn(id);
+  res.json(registered);
+});
+
+app.post("/loadchatmessages", authenticateToken, async (req, res) => {
+  const {url,limit,before} = req.body;
+  const userId = req.user.uid; // Firebase ID token validation
+
+  // Cap the limit to prevent abuse
+  const maxlimit = 50;
+  const safeLimit = Math.min(parseInt(limit) || 50, maxlimit);
+
+  // Optional: validate chatUrl
+  if (!url || typeof url !== "string") {
+      return res.status(400).json({ error: "Invalid chatUrl" });
+  }
+  let chat = getChat(url)
+  const chatRef = firestore.collection("gamechat").doc(chat+"chat");
+  let query = chatRef.collection("messages")
+    .orderBy("timestamp")
+    .limit(safeLimit);
+
+  if(before){
+      //Convert string to Firestore Timestamp (if needed)
+      query = query.startAfter(new Date(before));
+  }
+
+  const snapshot = await query.get();
+  const messages = snapshot.docs.map(doc => doc.data());
+
+  res.json(messages);
+});
+
+
 // Route to send chat messages - secured with token
 app.post("/sendchatmessage", authenticateToken, async (req, res) => {
   const { message, keycount, elapsed, url: curlink } = req.body;
@@ -247,16 +297,7 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
     return res.json({ msg:"Bro tried to bot chat messages on a useless game and still failed. How bad are you at ts gang 🥀" });
   }
   const username = await getUsername(userId);
-  const split = curlink.split("/");
-  if (split[split.length - 1] ==="") {
-    split.pop();
-  }
-  let chat ="";
-  if (split[split.length - 1].includes(".com")) {
-    chat ="lobby";
-  } else {
-    chat = split[split.length - 1];
-  }
+  let chat = getChat(curlink)
   const chatDocRef = firestore.collection("gamechat").doc(chat +"chat");
   const chatDoc = await chatDocRef.get();
   const chatData = chatDoc.exists ? chatDoc.data() : {};
@@ -321,7 +362,7 @@ app.get("/game:gameid/reaps", async (req, res) => {
     res.json(reaps);
   } catch (err) {
     console.error(err);
-    res.status(500).json({error:"Internal servererror" });
+    res.status(500).json({error:"Internal server error" });
   }
 });
 
