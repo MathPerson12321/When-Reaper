@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", async() => {
             return;
         }
         try {
-            const auth = getAuth();
+            const auth = getAuth(app);
             const currentUser = auth.currentUser;
             if (!currentUser) {
                 return;
