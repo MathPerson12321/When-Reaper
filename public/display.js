@@ -89,7 +89,7 @@ function makeLeaderboard(){
 
     tr.appendChild(createCell(i + 1));
     tr.appendChild(createCell(userid));
-    tr.appendChild(createCell(stats.time));
+    tr.appendChild(createCell(stats.time.toFixed(3)));
     tr.appendChild(createCell(stats.reapcount));
     tr.appendChild(createCell((stats.time / stats.reapcount).toFixed(3)));
 
