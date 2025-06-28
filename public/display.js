@@ -154,7 +154,7 @@ async function reaped() {
     alert(data.error || "Error during reaping");
     return;
   }
-  displayCooldown(now);
+  displayCooldown(Date.now());
   await updateAll();
 }
 
@@ -188,7 +188,6 @@ function calcTime(){
 
 async function updateAll(){
   data = await fetchJSON("/gamedata",gamenum);
-  console.log(data)
   reaps = await fetchJSON("/reaps",gamenum);
   reaps = Object.entries(reaps).filter(([_, val]) => val !== null);
   userlastreaps = await fetchJSON("/lastuserreap",gamenum);
