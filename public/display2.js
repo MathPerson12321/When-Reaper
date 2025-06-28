@@ -1,5 +1,5 @@
 import {checkAuthAndRedirect} from "./authcheck.js";
-import {getAuth} from "firebase/auth";
+import {getAuth} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js";
 
 let data = null;
 let userlastreaps = null;

@@ -5,24 +5,24 @@ import cors from "cors";
 import path from "path";
 import admin from "firebase-admin";
 import fs from "fs";
-import { readFile } from "fs/promises";
-import { fileURLToPath } from "url";
+import {readFile} from "fs/promises";
+import {fileURLToPath} from "url";
 
 // Setup __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const reapingLocks = new Set(); // Prevents simultaneous reaps by same user
-const link = "https://reaperclone.onrender.com/";
+const link ="https://reaperclone.onrender.com/";
 
 // Firebase Admin SDK initialization
 const serviceAccount = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "firebase-adminsdk.json"), "utf-8")
+  fs.readFileSync(path.join(__dirname,"firebase-adminsdk.json"),"utf-8")
 );
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://reaper-clone-default-rtdb.firebaseio.com/",
+  databaseURL:"https://reaper-clone-default-rtdb.firebaseio.com/",
 });
 
 const db = admin.database();
@@ -40,10 +40,10 @@ const PORT = process.env.PORT || 10000;
 // Middleware to authenticate Firebase ID token
 async function authenticateToken(req, res, next) {
   const idToken =
-    req.body.idToken || req.headers.authorization?.split("Bearer ")[1];
+    req.body.idToken || req.headers.authorization?.split("Bearer")[1];
 
   if (!idToken) {
-    return res.status(401).json({ error: "Missing ID token" });
+    return res.status(401).json({error:"Missing ID token" });
   }
 
   try {
@@ -51,8 +51,8 @@ async function authenticateToken(req, res, next) {
     req.user = decodedToken; // contains uid
     next();
   } catch (err) {
-    console.error("[AUTH ERROR]", err);
-    return res.status(401).json({ error: "Invalid or expired ID token" });
+    console.error("[AUTHerror]", err);
+    return res.status(401).json({error:"Invalid or expired ID token" });
   }
 }
 
@@ -79,11 +79,11 @@ async function getDivisors() {
 async function addUser(user, id) {
   const existing = await firestore
     .collection("users")
-    .where("username", "==", user)
+    .where("username","==", user)
     .get();
 
   if (!existing.empty) {
-    return { success: false, message: "Pick a different username dumbo, be creative" };
+    return { success: false, message:"Pick a different username dumbo, be creative" };
   }
   try {
     await firestore.collection("users").doc(id).set({
@@ -92,7 +92,7 @@ async function addUser(user, id) {
       totalbonuses: 0,
       totaltime: 0,
       banned: false,
-      banreason: "",
+      banreason:"",
       gamesplayed: 0,
       totalsnipes: 0,
       totaltimessniped: 0,
@@ -121,7 +121,7 @@ async function isLoggedIn(id) {
 async function getUsername(userId) {
   const userdoc = await firestore.collection("users").doc(userId).get();
   const userData = userdoc.data();
-  if (!userData) throw new Error("User not found");
+  if (!userData) throw newerror("User not found");
   return userData.username;
 }
 
@@ -136,7 +136,7 @@ async function getGames() {
 
   const gameinfo = await Promise.all(
     names.map(async (name) => {
-      const gameSnap = await db.ref(name + "/gamedata").once("value");
+      const gameSnap = await db.ref(name +"/gamedata").once("value");
       let gamedata = {};
       if (gameSnap.exists()) {
         gamedata = gameSnap.val();
@@ -217,11 +217,11 @@ app.get("/healthz", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "lobby.html"));
+  res.sendFile(path.join(__dirname,"public","lobby.html"));
 });
 
 app.get("/login", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "login.html"));
+  res.sendFile(path.join(__dirname,"public","login.html"));
 });
 
 app.get("/games", async (req, res) => {
@@ -241,23 +241,23 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
   const userId = req.user.uid;
 
   if (!message || message.length === 0) {
-    return res.json({ msg: "Trying to send an empty message, I'm not that stupid 🥀" });
+    return res.json({ msg:"Trying to send an empty message, I'm not that stupid 🥀" });
   }
   if (message.length > keycount || elapsed < 50) {
-    return res.json({ msg: "Bro tried to bot chat messages on a useless game and still failed. How bad are you at ts gang 🥀" });
+    return res.json({ msg:"Bro tried to bot chat messages on a useless game and still failed. How bad are you at ts gang 🥀" });
   }
   const username = await getUsername(userId);
   const split = curlink.split("/");
-  if (split[split.length - 1] === "") {
+  if (split[split.length - 1] ==="") {
     split.pop();
   }
-  let chat = "";
+  let chat ="";
   if (split[split.length - 1].includes(".com")) {
-    chat = "lobby";
+    chat ="lobby";
   } else {
     chat = split[split.length - 1];
   }
-  const chatDocRef = firestore.collection("gamechat").doc(chat + "chat");
+  const chatDocRef = firestore.collection("gamechat").doc(chat +"chat");
   const chatDoc = await chatDocRef.get();
   const chatData = chatDoc.exists ? chatDoc.data() : {};
 
@@ -272,7 +272,7 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
 
   await chatDocRef.set({ [messageCount]: newMessage }, { merge: true });
 
-  res.json({ msg: "Message received." });
+  res.json({ msg:"Message received." });
 });
 
 // User creation / check route - token required
@@ -281,26 +281,26 @@ app.post("/usercheck", authenticateToken, async (req, res) => {
   const id = req.user.uid;
 
   // Profanity check
-  const json = path.join(__dirname, "profanitydoc.json");
-  const file = await readFile(json, "utf-8");
+  const json = path.join(__dirname,"profanitydoc.json");
+  const file = await readFile(json,"utf-8");
   const bannedwords = JSON.parse(file);
   for (let i = 0; i < bannedwords.length; i++) {
     if (name.toLowerCase().includes(bannedwords[i].toLowerCase())) {
-      return res.status(200).json({ allowed: "Contains banned term." });
+      return res.status(200).json({ allowed:"Contains banned term." });
     }
   }
 
   const result = await addUser(name, id);
   if (!result.success) {
-    return res.status(500).json({ allowed: "Failed to add user", error: result.message });
+    return res.status(500).json({ allowed:"Failed to add user",error: result.message });
   }
 
-  return res.status(200).json({ allowed: "Good!" });
+  return res.status(200).json({ allowed:"Good!" });
 });
 
 app.get("/game:gameid/", (req, res) => {
   const gameid = req.params.gameid;
-  res.sendFile(path.join(__dirname, "public", "gamepage" + gameid + ".html"));
+  res.sendFile(path.join(__dirname,"public","gamepage" + gameid +".html"));
 });
 
 app.get("/game:gameid/leaderboard", async (req, res) => {
@@ -310,7 +310,7 @@ app.get("/game:gameid/leaderboard", async (req, res) => {
     res.json(leaderboard);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({error:"Internal servererror" });
   }
 });
 
@@ -321,7 +321,7 @@ app.get("/game:gameid/reaps", async (req, res) => {
     res.json(reaps);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({error:"Internal servererror" });
   }
 });
 
@@ -332,7 +332,7 @@ app.get("/game:gameid/lastuserreap", async (req, res) => {
     res.json(last);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({error:"Internal servererror" });
   }
 });
 
@@ -342,7 +342,7 @@ app.get("/getusername/:userid", async (req, res) => {
     let username = await getUsername(userId);
     return res.json(username);
   } catch {
-    return res.status(404).json({ error: "User not found" });
+    return res.status(404).json({error:"User not found" });
   }
 });
 
@@ -352,7 +352,7 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
   const userId = req.user.uid;
 
   if (reapingLocks.has(userId)) {
-    return res.status(429).json({ error: "Reap already in progress" });
+    return res.status(429).json({error:"Reap already in progress" });
   }
 
   reapingLocks.add(userId);
@@ -363,11 +363,11 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
     const now = Date.now();
 
     if (!data || !data.gamerunning || now < data.starttime) {
-      return res.status(400).json({ error: "Game is not running" });
+      return res.status(400).json({error:"Game is not running" });
     }
 
-    if (data.winner !== "") {
-      return res.status(400).json({ error: "Game has ended" });
+    if (data.winner !=="") {
+      return res.status(400).json({error:"Game has ended" });
     }
 
     const lastUserReaps = await loadLastUserReaps(gamenum);
@@ -377,7 +377,7 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
     const userLastReap = lastUserReaps[username] || 0;
     if (now - userLastReap < data.cooldown) {
       const waitTime = data.cooldown - (now - userLastReap);
-      return res.status(429).json({ error: `Cooldown active. Wait ${waitTime} ms` });
+      return res.status(429).json({error: `Cooldown active. Wait ${waitTime} ms` });
     }
 
     const reapTimestamps = Object.values(reaps).map((r) => r.timestamp);
@@ -394,7 +394,7 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
     let endbonus = 1;
     let divider = 1;
     let counter = 2;
-    let text = "";
+    let text ="";
 
     for (const key in bonuses) {
       const val = bonuses[key][1] * 10;
@@ -457,30 +457,30 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
     await saveLastUserReaps(gamenum, lastUserReaps);
     await saveLeaderboard(gamenum, leaderboard);
 
-    broadcast({ type: "reap", reap: reapEntry });
+    broadcast({ type:"reap", reap: reapEntry });
 
     res.json({
       success: true,
-      message: "Reap successful",
+      message:"Reap successful",
       reap: reapEntry,
       cooldown: data.cooldown,
       leaderboard,
     });
   } catch (err) {
-    console.error("[REAP ERROR]", err);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("[REAPerror]", err);
+    res.status(500).json({error:"Internal servererror" });
   } finally {
     reapingLocks.delete(userId);
   }
 });
 
 app.get("/:gameid/gamedata", async (req, res) => {
-  const gamenum = req.params.gameid.replace("game", "");
+  const gamenum = req.params.gameid.replace("game","");
   try {
     const currentTime = Date.now();
     let data = await loadData(gamenum);
     if (!data) {
-      return res.status(400).json({ error: "No game data found." });
+      return res.status(400).json({error:"No game data found." });
     }
 
     if (currentTime >= data.starttime) {
@@ -492,13 +492,13 @@ app.get("/:gameid/gamedata", async (req, res) => {
     return res.status(200).json(data);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({error:"Internal servererror" });
   }
 });
 
 // ------------------ Static Middleware ------------------
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname,"public")));
 
 // ------------------ Catch-all 404 ------------------
 
@@ -507,30 +507,28 @@ app.use((req, res) => {
   res.status(404).send("Not Found");
 });
 
-// Whitelisted public paths
 const publicPaths = [
-  "/",
-  /^\/game\d+$/, // matches /game1, /game2, etc.
+ "/",
+  /^\/game\d+$/,
   /^\/public\//,
 ];
 
-// Block disallowed routes (non-POST, non-healthz, etc.)
 app.use((req, res, next) => {
   const isAllowed = publicPaths.some((path) => {
-    return typeof path === "string" ? req.path === path : path.test(req.path);
+    return typeof path ==="string" ? req.path === path : path.test(req.path);
   });
 
-  if (!isAllowed && req.method !== "POST" && req.path !== "/healthz") {
-    return res.status(403).json({ error: "Forbidden" });
+  if (!isAllowed && req.method !=="POST" && req.path !=="/healthz") {
+    return res.status(403).json({error:"Forbidden" });
   }
   next();
 });
 
-// ------------------ Start Server ------------------
+// ------------------ Start Server ------------------ 
 server.listen(PORT, () => {
   console.log(`Reaper backend running on port ${PORT}`);
 
-  /*replaceReaps("aiden0626", "yaxuan", "game1").then(() => {
+  /*replaceReaps("aiden0626","yaxuan","game1").then(() => {
     console.log("✅ replaceReaps done");
   }).catch(err => {
     console.error("❌ replaceReaps error:", err);
