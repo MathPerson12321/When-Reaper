@@ -303,14 +303,24 @@ app.post("/sendchatmessage", async (req, res) => {
     chat = split[split.length-1]
   }
   console.log(chat)
-  await firestore.collection("gamechat").doc(chat+"chat").set({
-    username: username,
-    userid: id,
-    message: message,
-    timestamp: admin.firestore.FieldValue.serverTimestamp() 
-  });
+  const chatDocRef = firestore.collection("gamechat").doc(chat + "chat");
+  const chatDoc = await chatDocRef.get();
+  const chatData = chatDoc.exists ? chatDoc.data() : {};
 
-  res.json({msg: "Message received."});
+  // Count existing messages
+  const messageCount = Object.keys(chatData).length;
+
+  const newMessage = {
+    userid: id,
+    username,
+    message,
+    timestamp: admin.firestore.FieldValue.serverTimestamp()
+  };
+
+  // Set the new message under the next numeric key
+  await chatDocRef.set({ [messageCount]: newMessage }, { merge: true });
+
+  res.json({ msg: "Message received." });
 })
 
 app.post("/usercheck", async (req, res) => {
