@@ -38,7 +38,7 @@ async function loadMessages(limit,user){
 }
 
 async function sendMessage(user){
-    const message = input.value.trim();
+    const message = document.getElementById("chatmsgcontent").value.trim();
     const elapsed = Date.now() - start;
     if(message.length == 0){
         alert("Please type something.")
@@ -71,7 +71,7 @@ async function sendMessage(user){
         if(!res.ok){
             alert(result.error || "Failed to send message.");
         }else{
-            input.value = "";
+            document.getElementById("chatmsgcontent").value = "";
             typing = false;
             keycount = 0;
         }
@@ -121,6 +121,7 @@ document.addEventListener("DOMContentLoaded", async() => {
     input.style.padding = "10px";
     input.style.outline = "none";
     input.style.flex = "1";
+    input.id = "chatmsgcontent";
   
     //Send button
     const button = document.createElement("button");
