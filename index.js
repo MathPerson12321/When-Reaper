@@ -297,25 +297,18 @@ app.post("/sendchatmessage", async (req, res) => {
     split.pop()
   }
   let chat = ""
-  console.log(split)
   if(split[split.length-1].includes(".com")){
     chat = "lobby"
   }else{
     chat = split[split.length-1]
   }
   console.log(chat)
-  /*await firestore.collection("users").doc(id).set({
-    username: user,
-    wins: 0,
-    totalbonuses: 0,
-    totaltime: 0,
-    banned: false,
-    banreason: "",
-    gamesplayed: 0,
-    totalsnipes: 0,
-    totaltimessniped: 0,
-    lastActive: admin.firestore.FieldValue.serverTimestamp()
-  });*/
+  await firestore.collection("gamechat").doc(chat+"chat").set({
+    username: username,
+    userid: id,
+    message: message,
+    timestamp: admin.firestore.FieldValue.serverTimestamp() 
+  });
 
   res.json({msg: "Message received."});
 })

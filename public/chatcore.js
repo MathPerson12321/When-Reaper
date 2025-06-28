@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", async() => {
                 alert(result.error || "Failed to send message.");
             }else{
                 if(result != ""){
-                    alert(result)
+                    alert(result[0])
                 }
                 input.value = "";
                 typing = false;
