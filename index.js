@@ -13,7 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const reapingLocks = new Set(); // Prevents simultaneous reaps by same user
-const link ="https://reaperclone.onrender.com/";
+const link = "https://reaperclone.onrender.com/";
 
 // Firebase Admin SDK initialization
 const serviceAccount = JSON.parse(

@@ -1,6 +1,6 @@
-import {initializeApp, getApps, getApp} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
 import {getAuth, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
 import {redirectFromLogin} from "./authcheck.js";
+import app from './firebase.js';
 
 const link = "https://reaperclone.onrender.com/";
 
@@ -17,19 +17,6 @@ async function writeJSON(path, data) {
   });
   return res.json();
 }
-
-const firebaseConfig = {
-  apiKey: "AIzaSyASmVweFPm03Tizv6J9RMz5nR7THRx7pHU",
-  authDomain: "reaper-clone.firebaseapp.com",
-  databaseURL: "https://reaper-clone-default-rtdb.firebaseio.com",
-  projectId: "reaper-clone",
-  storageBucket: "reaper-clone.appspot.com",
-  messagingSenderId: "329401063543",
-  appId: "1:329401063543:web:4cb1d3ae3668c46a1d4e72",
-  measurementId: "G-EGPV5J832T"
-};
-
-const app = getApps().length ? getApp():initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 

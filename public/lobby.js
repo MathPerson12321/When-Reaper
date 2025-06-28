@@ -1,4 +1,5 @@
 import {checkAuthAndRedirect} from "./authcheck.js";
+import app from './firebase.js';
 
 const user = await checkAuthAndRedirect();
 console.log("Logged in user:", user);

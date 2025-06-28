@@ -1,5 +1,6 @@
 import {checkAuthAndRedirect} from "./authcheck.js";
-import {getAuth} from "firebase/auth"; // Import Firebase auth
+import {getAuth} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js";
+import app from './firebase.js';
 const link = "https://reaperclone.onrender.com/";
 
 async function fetchJSON(path,path2){

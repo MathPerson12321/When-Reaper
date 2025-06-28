@@ -1,4 +1,5 @@
 import {checkAuthAndRedirect} from "./authcheck.js";
+import app from './firebase.js';
 import {getAuth} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js";
 
 let data = null;
@@ -134,7 +135,7 @@ function timetoseconds(milliseconds){
 }
 
 async function reaped() {
-  const auth = getAuth();
+  const auth = getAuth(app);
   const user = auth.currentUser;
   if (!user){
     return;
