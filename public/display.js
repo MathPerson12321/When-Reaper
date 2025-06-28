@@ -1,4 +1,5 @@
 import {checkAuthAndRedirect} from "./authcheck.js";
+import {getAuth} from "firebase/auth";
 
 let data = null;
 let userlastreaps = null;
@@ -132,8 +133,26 @@ function timetoseconds(milliseconds){
   return seconds + " seconds";
 }
 
-async function reaped(){
-  const response = await writeJSON("/reap/", gamenum, {user: userId});
+async function reaped() {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  if (!user){
+    return;
+  }
+  const idToken = await user.getIdToken();
+  const response = await fetch(link + gamenum + "/reap", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${idToken}`,
+    },
+    body: JSON.stringify({ user: user.uid }),
+  });
+  const data = await response.json();
+  if(!response.ok){
+    alert(data.error || "Error during reaping");
+    return;
+  }
   await updateAll();
 }
 

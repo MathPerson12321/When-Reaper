@@ -1,4 +1,5 @@
 import {checkAuthAndRedirect} from "./authcheck.js";
+import {getAuth} from "firebase/auth"; // Import Firebase auth
 const link = "https://reaperclone.onrender.com/";
 
 async function fetchJSON(path,path2){
@@ -89,27 +90,31 @@ document.addEventListener("DOMContentLoaded", async() => {
             alert("Stop botting.");
             return;
         }
-        const data = {
-            userId: userId,
-            message,
-            keycount,
-            elapsed,
-            url: window.location.href
-        };
-        try{
-            const res = await fetch(link+"sendchatmessage", {
+        try {
+            const auth = getAuth();
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+                return;
+            }
+            const idToken = await currentUser.getIdToken();
+            const data = {
+                message,
+                keycount,
+                elapsed,
+                url: window.location.href,
+            };
+            const res = await fetch(link + "sendchatmessage", {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
+                headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${idToken}`,
+                },
                 body: JSON.stringify(data),
             });
-
             const result = await res.json();
             if(!res.ok){
                 alert(result.error || "Failed to send message.");
             }else{
-                if(result != ""){
-                    alert(result[0])
-                }
                 input.value = "";
                 typing = false;
                 keycount = 0;
