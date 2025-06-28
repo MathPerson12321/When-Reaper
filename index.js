@@ -57,6 +57,12 @@ async function getBonuses(){
   return bonuses
 }
 
+async function getDividers(){
+  let data = await firestore.collection("bonuses").doc("dividers").get();
+  const bonuses = data.data()
+  return bonuses
+}
+
 async function addUser(user, id) {
   let users = await getUsers()
   const existing = await firestore.collection("users")
@@ -419,9 +425,9 @@ app.post("/game:gameid/reap", async (req, res) => {
 
     let timeGained = now - lastReapTimestamp;
     const rawbonuses = await getBonuses();
-    console.log(rawbonuses)
-    const bonuses = Object.entries(rawbonuses)[0].sort((a, b) => b[1] - a[1]);
-    const divisors = Object.entries(rawbonuses)[1];
+    const rawdividers = await getDivisors();
+    const bonuses = Object.entries(rawbonuses).sort((a, b) => b[1] - a[1]);
+    const divisors = Object.entries(rawdividers);
 
     //Multiplier
     let endbonus = 1;
