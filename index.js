@@ -57,7 +57,7 @@ async function getBonuses(){
   return bonuses
 }
 
-async function getDividers(){
+async function getDivisors(){
   let data = await firestore.collection("bonuses").doc("dividers").get();
   const bonuses = data.data()
   return bonuses
