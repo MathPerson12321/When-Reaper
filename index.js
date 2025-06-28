@@ -293,6 +293,9 @@ app.post("/sendchatmessage", async (req, res) => {
   }
   const username = await getUsername(id)
   const split = curlink.split("/");
+  if(split[split.length-1] == ""){
+    split.pop()
+  }
   let chat = ""
   console.log(split)
   if(split[split.length-1].includes(".com")){
