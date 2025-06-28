@@ -227,21 +227,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("reapbutton").addEventListener("click", reaped);
 
   setInterval(async function () {
-    const unixtime = Date.now();
-    data = await fetchJSON("/gamedata",gamenum);
+    const now = Date.now();
     document.getElementById("desc").innerHTML = data.description;
-    if (data.starttime > unixtime){
-      const res = "Game starts in " + timetoseconds(calcTime());
+    if (data.starttime > now){
+      const res = "Game starts in " + timetoseconds(data.starttime-now);
       document.getElementById("timeleft").innerHTML = res;
     } else {
       document.getElementById("wait").style.display = "none";
       document.getElementById("game").style.display = "block";
-      displayTime(Date.now());
-
-      if(Date.now() - (userlastreaps[username] || 0) < data.cooldown){
+      displayTime(now);
+      if(now - (userlastreaps[username] || 0) < data.cooldown){
         document.getElementById("reapstuff").style.display = "none";
         document.getElementById("cooldown").style.display = "block";
-        displayCooldown(Date.now());
+        displayCooldown(now);
       } else {
         document.getElementById("reapstuff").style.display = "block";
         document.getElementById("cooldown").style.display = "none";
