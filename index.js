@@ -308,7 +308,7 @@ app.post("/sendchatmessage", async (req, res) => {
   const chatData = chatDoc.exists ? chatDoc.data() : {};
 
   // Count existing messages
-  const messageCount = Object.keys(chatData).length;
+  const messageCount = Object.keys(chatData).length+1; //Next message
 
   const newMessage = {
     userid: id,
