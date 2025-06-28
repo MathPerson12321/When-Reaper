@@ -1,8 +1,6 @@
-import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-import { redirectFromLogin } from "./authcheck.js";
-
-console.log("Login script loaded");
+import {initializeApp, getApps, getApp} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+import {getAuth, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+import {redirectFromLogin} from "./authcheck.js";
 
 const link = "https://reaperclone.onrender.com/";
 
@@ -14,7 +12,7 @@ async function fetchJSON(path) {
 async function writeJSON(path, data) {
   const res = await fetch(link + path, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
   return res.json();
@@ -31,14 +29,11 @@ const firebaseConfig = {
   measurementId: "G-EGPV5J832T"
 };
 
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const app = getApps().length ? getApp():initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log("DOMContentLoaded");
-
-  // Check if already logged in and registered
   const user = await redirectFromLogin();
   if (user) {
     console.log("Already logged in:", user.uid);
@@ -46,24 +41,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   document.getElementById("loginbutton").addEventListener("click", async () => {
-    console.log("Login button clicked");
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      const id = user.uid;
-
-      console.log("Signed in as:", id);
-
-      const users = await fetchJSON("users/" + id);
-      console.log("User list result:", users);
+      const idToken = await user.getIdToken();
+      const users = await fetchJSON("users/" + idToken);
 
       if (!users) {
-        console.log("New user, show registration");
         document.getElementById("register").style.display = "block";
       } else {
-        console.log("User exists, redirecting");
         window.location.replace(link);
-      }      
+      }
     } catch (error) {
       console.error("Login error:", error);
     }
@@ -74,19 +62,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     const isValid = /^[a-z0-9]+$/i.test(username);
     if (!isValid) {
       console.log("Invalid username");
+      document.getElementById("error").innerHTML = "Username must be alphanumeric.";
       return;
     }
     try {
-      const id = auth.currentUser.uid;
-      console.log(`Registering user "${username}" for ID: ${id}`);
-  
-      const result = await writeJSON("usercheck", {username: username, userid: id});
+      const idToken = await auth.currentUser.getIdToken();
+      console.log(`Registering user "${username}"`);
+
+      const result = await writeJSON("usercheck", {
+        username: username,
+        idToken: idToken
+      });
+
       console.log("Registration result:", result);
-      if(!result.success){
+      if (!result.success) {
         document.getElementById("error").innerHTML = result.message;
+      } else {
+        window.location.replace(link);
       }
     } catch (error) {
       console.error("Username submission error:", error);
     }
-  });  
+  });
 });

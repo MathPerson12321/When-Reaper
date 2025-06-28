@@ -1,19 +1,18 @@
 import express from "express";
 import http from "http";
-import WebSocket, {WebSocketServer} from "ws";
+import WebSocket, { WebSocketServer } from "ws";
 import cors from "cors";
 import path from "path";
 import admin from "firebase-admin";
 import fs from "fs";
-import {readFile} from "fs/promises";
-import {fileURLToPath} from "url";
+import { readFile } from "fs/promises";
+import { fileURLToPath } from "url";
 
 // Setup __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const reapingLocks = new Set(); // Prevents simultaneous reaps by same user
-
 const link = "https://reaperclone.onrender.com/";
 
 // Firebase Admin SDK initialization
@@ -31,48 +30,62 @@ const firestore = admin.firestore();
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocketServer({ server});
+const wss = new WebSocketServer({ server });
 
 app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 10000;
 
-// Logging startup
-console.log("Starting Reaper server");
+// Middleware to authenticate Firebase ID token
+async function authenticateToken(req, res, next) {
+  const idToken =
+    req.body.idToken || req.headers.authorization?.split("Bearer ")[1];
 
-// WebSocket broadcast function - broadcasts to all clients
+  if (!idToken) {
+    return res.status(401).json({ error: "Missing ID token" });
+  }
+
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    req.user = decodedToken; // contains uid
+    next();
+  } catch (err) {
+    console.error("[AUTH ERROR]", err);
+    return res.status(401).json({ error: "Invalid or expired ID token" });
+  }
+}
+
+// Broadcast helper for WebSocket
 function broadcast(obj) {
   const json = JSON.stringify(obj);
-  wss.clients.forEach(client => {
+  wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(json);
     }
- });
+  });
 }
 
-async function getBonuses(){
+async function getBonuses() {
   let data = await firestore.collection("bonuses").doc("multipliers").get();
-  const bonuses = data.data()
-  return bonuses
+  return data.data();
 }
 
-async function getDivisors(){
+async function getDivisors() {
   let data = await firestore.collection("bonuses").doc("dividers").get();
-  const bonuses = data.data()
-  return bonuses
+  return data.data();
 }
 
 async function addUser(user, id) {
-  let users = await getUsers()
-  const existing = await firestore.collection("users")
-  .where("username", "==", user)
-  .get();
+  const existing = await firestore
+    .collection("users")
+    .where("username", "==", user)
+    .get();
 
   if (!existing.empty) {
-    return { success: false, message: "Pick a different username dumbo, be creative"};
+    return { success: false, message: "Pick a different username dumbo, be creative" };
   }
-  try{
+  try {
     await firestore.collection("users").doc(id).set({
       username: user,
       wins: 0,
@@ -83,21 +96,34 @@ async function addUser(user, id) {
       gamesplayed: 0,
       totalsnipes: 0,
       totaltimessniped: 0,
-      timejoined: admin.firestore.FieldValue.serverTimestamp()
+      timejoined: admin.firestore.FieldValue.serverTimestamp(),
     });
-    return {success:true};
-  }catch(err){
+    return { success: true };
+  } catch (err) {
     console.error("Error in addUser:", err);
-    return{success:false, message:err.message};
+    return { success: false, message: err.message };
   }
 }
 
+async function getUsers() {
+  const snapshot = await firestore.collection("users").get();
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+}
 
 async function isLoggedIn(id) {
   const users = await getUsers();
-  return users.some(user => user.id === id);
+  return users.some((user) => user.id === id);
 }
 
+async function getUsername(userId) {
+  const userdoc = await firestore.collection("users").doc(userId).get();
+  const userData = userdoc.data();
+  if (!userData) throw new Error("User not found");
+  return userData.username;
+}
 
 async function getGames() {
   const now = Date.now();
@@ -121,82 +147,17 @@ async function getGames() {
         running = true;
       }
       const description = gamedata.description;
-      const winner = gamedata.winner
+      const winner = gamedata.winner;
 
       return {
         name,
         running,
         description,
-        winner
+        winner,
       };
-   })
+    })
   );
   return gameinfo;
-}
-
-async function renameLeaderboardKey(gameId, oldKey, newKey) {
-  const oldRef = db.ref(`${gameId}/leaderboard/${oldKey}`);
-  const newRef = db.ref(`${gameId}/leaderboard/${newKey}`);
-
-  try {
-    const snapshot = await oldRef.once("value"); // ✅ use `.once("value")` in admin SDK
-
-    if (!snapshot.exists()) {
-      console.error("Old key does not exist");
-      return;
-    }
-
-    const value = snapshot.val();
-
-    await newRef.set(value);      // ✅ set value to new key
-    await oldRef.remove();        // ✅ delete old key
-
-    console.log(`Renamed ${oldKey} to ${newKey}`);
-  } catch (err) {
-    console.error("Error renaming key:", err);
-  }
-}
-
-async function updateReapsUsername(gameId, oldUsername, newUsername) {
-  const reapsRef = db.ref(`${gameId}/reaps`);
-  const snapshot = await reapsRef.once("value"); // ✅
-
-  if (!snapshot.exists()) {
-    console.error("No reaps found.");
-    return;
-  }
-
-  const reaps = snapshot.val();
-  const updates = {};
-
-  for (const [reapId, reapData] of Object.entries(reaps)) {
-    if (reapData.user === oldUsername) {
-      updates[`${reapId}/user`] = newUsername;
-    }
-  }
-
-  if (Object.keys(updates).length === 0) {
-    console.log("No usernames matched to update.");
-    return;
-  }
-
-  await reapsRef.update(updates);
-  console.log(`Updated usernames from '${oldUsername}' to '${newUsername}'`);
-}
-
-async function replaceReaps(olduser,newuser,gamenum){
-  await renameLeaderboardKey(gamenum,olduser,newuser);
-  await updateReapsUsername(gamenum,olduser,newuser);
-}
-
-async function getUsers() {
-  const snapshot = await firestore.collection("users").get();
-  const users = snapshot.docs.map(doc => (
-    {
-      id: doc.id,
-      ...doc.data()
-    }));
-  return users;
 }
 
 async function loadReaps(gamenum) {
@@ -235,13 +196,6 @@ async function saveData(gamenum, data) {
   await db.ref(`game${gamenum}/gamedata`).update(data);
 }
 
-async function getUsername(userId){
-  const userdoc = await firestore.collection('users').doc(userId).get();
-  const userData = userdoc.data();
-  const username = userData.username;
-  return username
-}
-
 // ------------------ WebSocket connection logs ------------------
 
 wss.on("connection", (ws) => {
@@ -249,92 +203,94 @@ wss.on("connection", (ws) => {
 
   ws.on("message", (message) => {
     console.log("[WS] Received:", message);
- });
+  });
 
   ws.on("close", () => {
     console.log("[WS] Client disconnected");
- });
+  });
 });
 
 // ------------------ API Routes ------------------
 
 app.get("/healthz", (req, res) => {
-    res.status(200).send("OK");
-  });  
+  res.status(200).send("OK");
+});
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "lobby.html"));
 });
 
 app.get("/login", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "login.html"));
+  res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
 app.get("/games", async (req, res) => {
-    const games = await getGames();
-    res.json(games);
-});  
+  const games = await getGames();
+  res.json(games);
+});
 
 app.get("/users/:userid", async (req, res) => {
   const id = req.params.userid;
-  console.log(`[BACKEND] Checking registration for user: ${id}`);
   const registered = await isLoggedIn(id);
-  console.log(`[BACKEND] Registration result: ${registered}`);
   res.json(registered);
 });
 
-app.post("/sendchatmessage", async (req, res) => {
-  const {userId:id,message:message,keycount:keycount,elapsed:elapsed,url:curlink} = req.body
-  if(message.length == 0){
-    return res.json({msg:"Trying to send an empty message, I'm not that stupid 🥀"});
+// Route to send chat messages - secured with token
+app.post("/sendchatmessage", authenticateToken, async (req, res) => {
+  const { message, keycount, elapsed, url: curlink } = req.body;
+  const userId = req.user.uid;
+
+  if (!message || message.length === 0) {
+    return res.json({ msg: "Trying to send an empty message, I'm not that stupid 🥀" });
   }
-  if(message.length > keycount || elapsed < 50){
-    return res.json({msg:"Bro tried to bot chat messages on a useless game and still failed. How bad are you at ts gang 🥀"});
+  if (message.length > keycount || elapsed < 50) {
+    return res.json({ msg: "Bro tried to bot chat messages on a useless game and still failed. How bad are you at ts gang 🥀" });
   }
-  const username = await getUsername(id)
+  const username = await getUsername(userId);
   const split = curlink.split("/");
-  if(split[split.length-1] == ""){
-    split.pop()
+  if (split[split.length - 1] === "") {
+    split.pop();
   }
-  let chat = ""
-  if(split[split.length-1].includes(".com")){
-    chat = "lobby"
-  }else{
-    chat = split[split.length-1]
+  let chat = "";
+  if (split[split.length - 1].includes(".com")) {
+    chat = "lobby";
+  } else {
+    chat = split[split.length - 1];
   }
-  console.log(chat)
   const chatDocRef = firestore.collection("gamechat").doc(chat + "chat");
   const chatDoc = await chatDocRef.get();
   const chatData = chatDoc.exists ? chatDoc.data() : {};
 
-  // Count existing messages
-  const messageCount = Object.keys(chatData).length+1; //Next message
+  const messageCount = Object.keys(chatData).length + 1; //Next message
 
   const newMessage = {
-    userid: id,
+    userid: userId,
     username,
     message,
-    timestamp: admin.firestore.FieldValue.serverTimestamp()
+    timestamp: admin.firestore.FieldValue.serverTimestamp(),
   };
 
-  // Set the new message under the next numeric key
   await chatDocRef.set({ [messageCount]: newMessage }, { merge: true });
 
   res.json({ msg: "Message received." });
-})
+});
 
-app.post("/usercheck", async (req, res) => {
-  const {username:name,userid:id} = req.body;
+// User creation / check route - token required
+app.post("/usercheck", authenticateToken, async (req, res) => {
+  const { username: name } = req.body;
+  const id = req.user.uid;
+
+  // Profanity check
   const json = path.join(__dirname, "profanitydoc.json");
   const file = await readFile(json, "utf-8");
   const bannedwords = JSON.parse(file);
   for (let i = 0; i < bannedwords.length; i++) {
     if (name.toLowerCase().includes(bannedwords[i].toLowerCase())) {
-      return res.status(200).json({allowed:"Contains banned term."});
+      return res.status(200).json({ allowed: "Contains banned term." });
     }
   }
-  const result = await addUser(name, id);
 
+  const result = await addUser(name, id);
   if (!result.success) {
     return res.status(500).json({ allowed: "Failed to add user", error: result.message });
   }
@@ -343,56 +299,57 @@ app.post("/usercheck", async (req, res) => {
 });
 
 app.get("/game:gameid/", (req, res) => {
-    const gameid = req.params.gameid;
-    res.sendFile(path.join(__dirname, "public", "gamepage"+gameid+".html"));
+  const gameid = req.params.gameid;
+  res.sendFile(path.join(__dirname, "public", "gamepage" + gameid + ".html"));
 });
 
 app.get("/game:gameid/leaderboard", async (req, res) => {
-    const gamenum = req.params.gameid;
-    try {
-      const leaderboard = await loadLeaderboard(gamenum);
-      res.json(leaderboard);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Internal server error"});
-    }
+  const gamenum = req.params.gameid;
+  try {
+    const leaderboard = await loadLeaderboard(gamenum);
+    res.json(leaderboard);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
-  
+
 app.get("/game:gameid/reaps", async (req, res) => {
-    const gamenum = req.params.gameid;
-    try {
-      const reaps = await loadReaps(gamenum);
-      res.json(reaps);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Internal server error"});
-    }
+  const gamenum = req.params.gameid;
+  try {
+    const reaps = await loadReaps(gamenum);
+    res.json(reaps);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
-  
+
 app.get("/game:gameid/lastuserreap", async (req, res) => {
-    const gamenum = req.params.gameid;
-    try {
-      const last = await loadLastUserReaps(gamenum);
-      res.json(last);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Internal server error"});
-    }
+  const gamenum = req.params.gameid;
+  try {
+    const last = await loadLastUserReaps(gamenum);
+    res.json(last);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 app.get("/getusername/:userid", async (req, res) => {
   const userId = req.params.userid;
-  let username = await getUsername(userId)
-  return res.json(username);
-});
-  
-app.post("/game:gameid/reap", async (req, res) => {
-  const gamenum = req.params.gameid;
-  const { user: userId } = req.body;
-
-  if (!userId) {
-    return res.status(400).json({ error: "Missing user ID in request body" });
+  try {
+    let username = await getUsername(userId);
+    return res.json(username);
+  } catch {
+    return res.status(404).json({ error: "User not found" });
   }
+});
+
+// Reap route - secured with token auth
+app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
+  const gamenum = req.params.gameid;
+  const userId = req.user.uid;
 
   if (reapingLocks.has(userId)) {
     return res.status(429).json({ error: "Reap already in progress" });
@@ -423,10 +380,9 @@ app.post("/game:gameid/reap", async (req, res) => {
       return res.status(429).json({ error: `Cooldown active. Wait ${waitTime} ms` });
     }
 
-    const reapTimestamps = Object.values(reaps).map(r => r.timestamp);
-    const lastReapTimestamp = reapTimestamps.length > 0
-      ? Math.max(...reapTimestamps)
-      : data.starttime;
+    const reapTimestamps = Object.values(reaps).map((r) => r.timestamp);
+    const lastReapTimestamp =
+      reapTimestamps.length > 0 ? Math.max(...reapTimestamps) : data.starttime;
 
     let timeGained = now - lastReapTimestamp;
     const rawbonuses = await getBonuses();
@@ -434,7 +390,7 @@ app.post("/game:gameid/reap", async (req, res) => {
     const bonuses = Object.entries(rawbonuses).sort((a, b) => b[1] - a[1]);
     const divisors = Object.entries(rawdividers);
 
-    //Multiplier
+    // Multiplier
     let endbonus = 1;
     let divider = 1;
     let counter = 2;
@@ -451,9 +407,8 @@ app.post("/game:gameid/reap", async (req, res) => {
     }
     timeGained *= endbonus;
 
-    if(endbonus == 1){
-      //Divide
-      //[Value, chance]
+    if (endbonus == 1) {
+      // Divide
       for (const key in divisors) {
         const divide = divisors[key][1][0];
         const val = divisors[key][1][1] * 10;
@@ -467,7 +422,7 @@ app.post("/game:gameid/reap", async (req, res) => {
       timeGained /= divider;
     }
 
-    const timeGainedSec = Math.round(timeGained / 1000 * 1000) / 1000;
+    const timeGainedSec = Math.round((timeGained / 1000) * 1000) / 1000;
 
     const reapNumber = Object.keys(reaps).length + 1;
     const reapEntry = {
@@ -486,7 +441,9 @@ app.post("/game:gameid/reap", async (req, res) => {
       leaderboard[username] = { time: 0, reapcount: 0 };
     }
 
-    leaderboard[username].time = Math.round((leaderboard[username].time + timeGainedSec) * 1000) / 1000;
+    leaderboard[username].time = Math.round(
+      (leaderboard[username].time + timeGainedSec) * 1000
+    ) / 1000;
     leaderboard[username].reapcount += 1;
 
     if (leaderboard[username].time * 1000 >= data.endtime) {
@@ -517,27 +474,26 @@ app.post("/game:gameid/reap", async (req, res) => {
   }
 });
 
-
 app.get("/:gameid/gamedata", async (req, res) => {
-    const gamenum = req.params.gameid.replace("game", "");
-    try {
-      const currentTime = Date.now();
-      let data = await loadData(gamenum);
-      if (!data) {
-        return res.status(400).json({ error: "No game data found."});
-      }
-  
-      if (currentTime >= data.starttime) {
-        if(data.gamerunning == false){
-          data.gamerunning = true;
-          await saveData(gamenum, data);
-        }
-      }
-      return res.status(200).json(data);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Internal server error"});
+  const gamenum = req.params.gameid.replace("game", "");
+  try {
+    const currentTime = Date.now();
+    let data = await loadData(gamenum);
+    if (!data) {
+      return res.status(400).json({ error: "No game data found." });
     }
+
+    if (currentTime >= data.starttime) {
+      if (data.gamerunning === false) {
+        data.gamerunning = true;
+        await saveData(gamenum, data);
+      }
+    }
+    return res.status(200).json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 // ------------------ Static Middleware ------------------
@@ -553,27 +509,24 @@ app.use((req, res) => {
 
 // Whitelisted public paths
 const publicPaths = [
-    "/",
-    /^\/game\d+$/, // matches /game1, /game2, etc.
-    /^\/public\//,
+  "/",
+  /^\/game\d+$/, // matches /game1, /game2, etc.
+  /^\/public\//,
 ];
-  
-//Block disallowed routes
+
+// Block disallowed routes (non-POST, non-healthz, etc.)
 app.use((req, res, next) => {
-    const isAllowed = publicPaths.some((path) => {
-      return typeof path === "string"
-        ? req.path === path
-        : path.test(req.path);
-    });
-  
-    if (!isAllowed && req.method !== "POST" && req.path !== "/healthz") {
-      return res.status(403).json({error: "Forbidden"});
-    }
-    next();
+  const isAllowed = publicPaths.some((path) => {
+    return typeof path === "string" ? req.path === path : path.test(req.path);
+  });
+
+  if (!isAllowed && req.method !== "POST" && req.path !== "/healthz") {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+  next();
 });
 
 // ------------------ Start Server ------------------
-
 server.listen(PORT, () => {
   console.log(`Reaper backend running on port ${PORT}`);
 
