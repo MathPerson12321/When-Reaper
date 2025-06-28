@@ -85,7 +85,7 @@ document.addEventListener("DOMContentLoaded", async() => {
             alert("Please type something.")
             return
         }
-        if(message.length != 0 || message.length > keycount || elapsed < 50){
+        if(message.length > keycount || elapsed < 50){
             alert("Stop botting.");
             return;
         }
