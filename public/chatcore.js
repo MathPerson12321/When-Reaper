@@ -30,7 +30,7 @@ async function loadMessages(limit){
         lastTimestamp = messages[messages.length - 1].timestamp;
     }
     loading = false;
-    return messages;
+    return messages.json();
 }
 
 async function sendMessage() {
@@ -78,8 +78,10 @@ async function sendMessage() {
 
 document.addEventListener("DOMContentLoaded", async() => {
     const user = await checkAuthAndRedirect();
-    let userId = user.uid;
-
+    if (!user) {
+        console.error("No user found after auth check.");
+        return;
+    }
     //Chat
     const chatContainer = document.createElement("div");
     chatContainer.style.width = "300px";
