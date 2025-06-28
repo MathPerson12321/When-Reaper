@@ -95,7 +95,6 @@ async function addUser(user, id) {
 
 async function isLoggedIn(id) {
   const users = await getUsers();
-  console.log(`[BACKEND] Firestore collections:`, users);
   return users.some(user => user.id === id);
 }
 
@@ -446,13 +445,14 @@ app.post("/game:gameid/reap", async (req, res) => {
     }
     timeGained *= endbonus;
     console.log(endbonus)
+    console.log(divisors)
 
     if(endbonus == 1){
       //Divide
       //[Value, chance]
       for (const key in divisors) {
-        const divide = bonuses[key][1][0];
-        const val = bonuses[key][1][1] * 10;
+        const divide = divisors[key][1][0];
+        const val = divisors[key][1][1] * 10;
         const rand = Math.floor(Math.random() * 1000) + 1;
         if (rand <= val) {
           divider = divide;

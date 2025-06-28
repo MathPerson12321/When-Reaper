@@ -23,7 +23,6 @@ export async function checkAuthAndRedirect() {
   
         try {
           const registered = await fetchJSON("users/" + user.uid);
-          console.log("User registered:", registered);
   
           if (registered) {
             unsubscribe();
