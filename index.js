@@ -444,8 +444,6 @@ app.post("/game:gameid/reap", async (req, res) => {
       counter++;
     }
     timeGained *= endbonus;
-    console.log(endbonus)
-    console.log(divisors)
 
     if(endbonus == 1){
       //Divide
@@ -461,7 +459,6 @@ app.post("/game:gameid/reap", async (req, res) => {
         counter++;
       }
       timeGained /= divider;
-      console.log(divider)
     }
 
     const timeGainedSec = Math.round(timeGained / 1000 * 1000) / 1000;
