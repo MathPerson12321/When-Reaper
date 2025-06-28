@@ -454,7 +454,7 @@ app.post("/game:gameid/reap", async (req, res) => {
         const rand = Math.floor(Math.random() * 1000) + 1;
         if (rand <= val) {
           divider = divide;
-          text = bonuses[key][0];
+          text = divisors[key][0];
         }
         counter++;
       }
