@@ -154,6 +154,7 @@ async function reaped() {
     alert(data.error || "Error during reaping");
     return;
   }
+  displayCooldown(now);
   await updateAll();
 }
 

@@ -2,10 +2,24 @@ import {checkAuthAndRedirect} from "./authcheck.js";
 import {getAuth} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js";
 import app from './firebase.js';
 const link = "https://reaperclone.onrender.com/";
+const auth = getAuth(app);
+const currentUser = auth.currentUser;
 
-async function fetchJSON(path,path2){
-    const res = await fetch(link+path2+path);
-    return await res.json();
+async function loadMessages(limit){
+    const idToken = await currentUser.getIdToken();
+    const data = {
+        url: window.location.href,
+        limit: limit
+    };
+    const res = await fetch(link + "loadchatmessages", {
+        method: "POST",
+        headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify(data),
+    });
+    let messages = await res.json();
 }
 
 document.addEventListener("DOMContentLoaded", async() => {
@@ -92,8 +106,6 @@ document.addEventListener("DOMContentLoaded", async() => {
             return;
         }
         try {
-            const auth = getAuth(app);
-            const currentUser = auth.currentUser;
             if (!currentUser) {
                 return;
             }
