@@ -12,7 +12,7 @@ let typing = false;
 let start = null;
 let keycount = 0;
 
-/*async function loadMessages(limit,user){
+async function loadMessages(limit,user){
     if (loading) return;
     loading = true;
     const idToken = await user.getIdToken();
@@ -31,52 +31,16 @@ let keycount = 0;
     });
     let messages = await res.json();
     if (messages.length > 0) {
-        lastTimestamp = messages[messages.length - 1].timestamp;
-    }   
+        const firstTimestamp = messages[0].timestamp;
+        if (firstTimestamp.toDate) {
+          lastTimestamp = firstTimestamp.toDate().toISOString();
+        } else {
+          lastTimestamp = firstTimestamp;
+        }
+    }
     loading = false;
     return messages;
-}*/
-
-async function loadMessages(limit, user) {
-    if (loading) return;
-    loading = true;
-    console.log("Inside loadMessages()");
-    try {
-        const idToken = await user.getIdToken();
-        const data = {
-            url: window.location.href,
-            limit: limit,
-            before: lastTimestamp
-        };
-        const res = await fetch(link + "loadchatmessages", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${idToken}`,
-            },
-            body: JSON.stringify(data),
-        });
-
-        if (!res.ok) {
-            console.error("Fetch failed:", await res.text());
-            return [];
-        }
-
-        let messages = await res.json();
-        console.log("Messages fetched:", messages);
-
-        if (messages.length > 0) {
-            lastTimestamp = messages[messages.length - 1].timestamp;
-        }
-        return messages;
-    } catch (err) {
-        console.error("Error in loadMessages:", err);
-        return [];
-    } finally {
-        loading = false;
-    }
 }
-
 
 async function sendMessage(user){
     const message = document.getElementById("chatmsgcontent").value.trim();
@@ -177,13 +141,11 @@ document.addEventListener("DOMContentLoaded", async() => {
     inputContainer.appendChild(button);
     chatContainer.appendChild(inputContainer);
 
-    console.log("Fetching messages...");
     let messages = await loadMessages(50,user);
-    console.log("Loaded messages:", messages);
     for (const msg of messages) {
         const msgdiv = document.createElement("div");
         msgdiv.textContent = msg.username+": " + msg.message;
-        chatWindow.appendChild(msgdiv);
+        chatWindow.prepend(msgdiv);
     }
 
     input.addEventListener("keydown", () => {

@@ -268,14 +268,12 @@ app.post("/loadchatmessages", authenticateToken, async (req, res) => {
       return res.status(400).json({ error: "Invalid chatUrl" });
   }
   let chat = getChat(url)
-  const chatRef = firestore.collection("gamechat").doc(chat+"chat");
-  let query = chatRef.collection("messages")
-    .orderBy("timestamp")
-    .limit(safeLimit);
+  const chatRef = firestore.collection("gamechat").doc(chat+"chat").collection("messages");
+  let query = chatRef.orderBy("timestamp", "asc").limit(safeLimit);
 
   if(before){
       //Convert string to Firestore Timestamp (if needed)
-      query = query.startAfter(new Date(before));
+      query = query.endBefore(new Date(before));
   }
 
   const snapshot = await query.get();
@@ -298,11 +296,7 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
   }
   const username = await getUsername(userId);
   let chat = getChat(curlink)
-  const chatDocRef = firestore.collection("gamechat").doc(chat +"chat");
-  const chatDoc = await chatDocRef.get();
-  const chatData = chatDoc.exists ? chatDoc.data() : {};
-
-  const messageCount = Object.keys(chatData).length + 1; //Next message
+  const chatDocRef = firestore.collection("gamechat").doc(chat +"chat").collection("messages");
 
   const newMessage = {
     userid: userId,
@@ -311,7 +305,7 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
     timestamp: admin.firestore.FieldValue.serverTimestamp(),
   };
 
-  await chatDocRef.set({ [messageCount]: newMessage }, { merge: true });
+  await chatDocRef.add(newMessage);
 
   res.json({ msg:"Message received." });
 });
