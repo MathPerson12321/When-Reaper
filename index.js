@@ -419,6 +419,7 @@ app.post("/game:gameid/reap", async (req, res) => {
 
     let timeGained = now - lastReapTimestamp;
     const rawbonuses = await getBonuses();
+    console.log(rawbonuses)
     const bonuses = Object.entries(rawbonuses)[0].sort((a, b) => b[1] - a[1]);
     const divisors = Object.entries(rawbonuses)[1];
 
@@ -431,7 +432,6 @@ app.post("/game:gameid/reap", async (req, res) => {
     for (const key in bonuses) {
       const val = bonuses[key][1] * 10;
       const rand = Math.floor(Math.random() * 1000) + 1;
-      console.log([val,rand])
       if (rand <= val) {
         endbonus = counter;
         text = bonuses[key][0];
@@ -445,11 +445,9 @@ app.post("/game:gameid/reap", async (req, res) => {
       //Divide
       //[Value, chance]
       for (const key in divisors) {
-        console.log(bonuses[key][1])
         const divide = bonuses[key][1][0];
         const val = bonuses[key][1][1] * 10;
         const rand = Math.floor(Math.random() * 1000) + 1;
-        console.log["D",val,rand]
         if (rand <= val) {
           divider = divide;
           text = bonuses[key][0];
