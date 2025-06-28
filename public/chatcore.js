@@ -8,10 +8,14 @@ const currentUser = auth.currentUser;
 let lastTimestamp = null;
 let loading = false;
 
-async function loadMessages(limit){
+let typing = false;
+let start = null;
+let keycount = 0;
+
+async function loadMessages(limit,user){
     if (loading) return;
     loading = true;
-    const idToken = await currentUser.getIdToken();
+    const idToken = await user.getIdToken();
     const data = {
         url: window.location.href,
         limit: limit,
@@ -28,12 +32,12 @@ async function loadMessages(limit){
     let messages = await res.json();
     if (messages.length > 0) {
         lastTimestamp = messages[messages.length - 1].timestamp;
-    }
+    }   
     loading = false;
-    return messages.json();
+    return messages;
 }
 
-async function sendMessage() {
+async function sendMessage(user){
     const message = input.value.trim();
     const elapsed = Date.now() - start;
     if(message.length == 0){
@@ -45,10 +49,10 @@ async function sendMessage() {
         return;
     }
     try {
-        if (!currentUser) {
+        if (!user) {
             return;
         }
-        const idToken = await currentUser.getIdToken();
+        const idToken = await user.getIdToken();
         const data = {
             message,
             keycount,
@@ -79,7 +83,6 @@ async function sendMessage() {
 document.addEventListener("DOMContentLoaded", async() => {
     const user = await checkAuthAndRedirect();
     if (!user) {
-        console.error("No user found after auth check.");
         return;
     }
     //Chat
@@ -132,16 +135,12 @@ document.addEventListener("DOMContentLoaded", async() => {
     inputContainer.appendChild(button);
     chatContainer.appendChild(inputContainer);
 
-    let messages = loadMessages(50);
+    let messages = await loadMessages(50,user);
     for (const msg of messages) {
         const msgdiv = document.createElement("div");
         msgdiv.textContent = msg.username+": " + msg.message;
         chatWindow.appendChild(msgdiv);
     }
-
-    let typing = false;
-    let start = null;
-    let keycount = 0;
 
     input.addEventListener("keydown", () => {
         if(!typing){
@@ -150,10 +149,10 @@ document.addEventListener("DOMContentLoaded", async() => {
         }
         keycount++;
     });
-    button.addEventListener("click", sendMessage);
+    button.addEventListener("click", () => sendMessage(user));
     input.addEventListener("keydown", (e) => {
-        if(e.key == "Enter"){
-            sendMessage();
+        if(e.key === "Enter"){
+            sendMessage(user);
         }
     });
 });

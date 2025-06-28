@@ -67,7 +67,7 @@ function makeLeaderboard(){
   const thead = document.createElement("thead");
   const trow = document.createElement("tr");
 
-  const headers = ["Rank","UserID","Time","Reaps","Average"];
+  const headers = ["Rank","Username","Time","Reaps","Average"];
   for (let header of headers){
     const th = document.createElement("th");
     th.textContent = header;
@@ -89,7 +89,7 @@ function makeLeaderboard(){
 
     tr.appendChild(createCell(i + 1));
     tr.appendChild(createCell(userid));
-    tr.appendChild(createCell(stats.time));
+    tr.appendChild(createCell(stats.time.toFixed(3)));
     tr.appendChild(createCell(stats.reapcount));
     tr.appendChild(createCell((stats.time / stats.reapcount).toFixed(3)));
 
@@ -154,6 +154,7 @@ async function reaped() {
     alert(data.error || "Error during reaping");
     return;
   }
+  displayCooldown(Date.now());
   await updateAll();
 }
 
@@ -186,7 +187,7 @@ function calcTime(){
 }
 
 async function updateAll(){
-  data = await fetchJSON("/gamedata",gamenum).data;
+  data = await fetchJSON("/gamedata",gamenum);
   reaps = await fetchJSON("/reaps",gamenum);
   reaps = Object.entries(reaps).filter(([_, val]) => val !== null);
   userlastreaps = await fetchJSON("/lastuserreap",gamenum);
@@ -224,7 +225,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  document.getElementById("reapbutton").addEventListener("click", reaped);
+  document.getElementById("reapbutton").addEventListener("click", (e) => {
+    if (!e.isTrusted) {
+      return;
+    }
+    reaped();
+  });
 
   setInterval(async function () {
     const now = Date.now();

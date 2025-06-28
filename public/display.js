@@ -67,7 +67,7 @@ function makeLeaderboard(){
   const thead = document.createElement("thead");
   const trow = document.createElement("tr");
 
-  const headers = ["Rank","UserID","Time","Reaps","Average"];
+  const headers = ["Rank","Username","Time","Reaps","Average"];
   for (let header of headers){
     const th = document.createElement("th");
     th.textContent = header;
