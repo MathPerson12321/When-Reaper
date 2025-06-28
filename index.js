@@ -12,6 +12,8 @@ import {fileURLToPath} from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const reapingLocks = new Set(); // Prevents simultaneous reaps by same user
+
 const link = "https://reaperclone.onrender.com/";
 
 // Firebase Admin SDK initialization
@@ -173,7 +175,7 @@ async function updateReapsUsername(gameId, oldUsername, newUsername) {
     return;
   }
 
-  await reapsRef.update(updates); // ✅ apply batch update
+  await reapsRef.update(updates);
   console.log(`Updated usernames from '${oldUsername}' to '${newUsername}'`);
 }
 
@@ -278,7 +280,10 @@ app.get("/users/:userid", async (req, res) => {
 
 app.post("/sendchatmessage", async (req, res) => {
   const {userId:id,message:message,keycount:keycount,elapsed:elapsed,url:curlink} = req.body
-  if(message.length == 0 || message.length > keycount || elapsed < 50){
+  if(message.length == 0){
+    return res.json({msg:"Trying to send an empty message, I'm not that stupid 🥀"});
+  }
+  if(message.length > keycount || elapsed < 50){
     return res.json({msg:"Bro tried to bot chat messages on a useless game and still failed. How bad are you at ts gang 🥀"});
   }
   const username = await getUsername(id)
@@ -372,15 +377,20 @@ app.get("/getusername/:userid", async (req, res) => {
   
 app.post("/game:gameid/reap", async (req, res) => {
   const gamenum = req.params.gameid;
-  const {user:userId} = req.body;
+  const { user: userId } = req.body;
 
   if (!userId) {
     return res.status(400).json({ error: "Missing user ID in request body" });
   }
 
-  const username = await getUsername(userId);
+  if (reapingLocks.has(userId)) {
+    return res.status(429).json({ error: "Reap already in progress" });
+  }
+
+  reapingLocks.add(userId);
 
   try {
+    const username = await getUsername(userId);
     const data = await loadData(gamenum);
     const now = Date.now();
 
@@ -396,30 +406,33 @@ app.post("/game:gameid/reap", async (req, res) => {
     const reaps = await loadReaps(gamenum);
     const leaderboard = await loadLeaderboard(gamenum);
 
-    const userLastReap = lastUserReaps[username] || 0;
+    const userLastReap = lastUserReaps[userId] || 0;
     if (now - userLastReap < data.cooldown) {
       const waitTime = data.cooldown - (now - userLastReap);
       return res.status(429).json({ error: `Cooldown active. Wait ${waitTime} ms` });
     }
 
     const reapTimestamps = Object.values(reaps).map(r => r.timestamp);
-    const lastReapTimestamp = reapTimestamps.length > 0 ? Math.max(...reapTimestamps) : data.starttime;
+    const lastReapTimestamp = reapTimestamps.length > 0
+      ? Math.max(...reapTimestamps)
+      : data.starttime;
 
     let timeGained = now - lastReapTimestamp;
-    let rawbonuses = await getBonuses();
-    let bonuses = Object.entries(rawbonuses).sort((a, b) => b[1] - a[1]);
+    const rawbonuses = await getBonuses();
+    const bonuses = Object.entries(rawbonuses).sort((a, b) => b[1] - a[1]);
+
     let endbonus = 1;
     let counter = 2;
     let text = "";
 
     for (const key in bonuses) {
-      let val = bonuses[key][1] * 10;
-      let rand = Math.floor(Math.random() * 1000) + 1;
+      const val = bonuses[key][1] * 10;
+      const rand = Math.floor(Math.random() * 1000) + 1;
       if (rand <= val) {
         endbonus = counter;
         text = bonuses[key][0];
       }
-      counter += 1;
+      counter++;
     }
 
     timeGained *= endbonus;
@@ -431,19 +444,20 @@ app.post("/game:gameid/reap", async (req, res) => {
       timestamp: now,
       timegain: timeGainedSec,
       bonus: endbonus,
-      bonustext: text
+      bonustext: text,
     };
 
     reaps[reapNumber] = reapEntry;
-    lastUserReaps[username] = now;
+    lastUserReaps[userId] = now;
 
     if (!leaderboard[username]) {
       leaderboard[username] = { time: 0, reapcount: 0 };
     }
+
     leaderboard[username].time = Math.round((leaderboard[username].time + timeGainedSec) * 1000) / 1000;
     leaderboard[username].reapcount += 1;
 
-    if (leaderboard[username].time*1000 >= data.endtime) {
+    if (leaderboard[username].time * 1000 >= data.endtime) {
       data.gamerunning = false;
       data.gameendtime = now;
       data.winner = username;
@@ -464,8 +478,10 @@ app.post("/game:gameid/reap", async (req, res) => {
       leaderboard,
     });
   } catch (err) {
-    console.error(err);
+    console.error("[REAP ERROR]", err);
     res.status(500).json({ error: "Internal server error" });
+  } finally {
+    reapingLocks.delete(userId);
   }
 });
 

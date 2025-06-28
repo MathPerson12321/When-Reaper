@@ -81,7 +81,11 @@ document.addEventListener("DOMContentLoaded", async() => {
     async function sendMessage() {
         const message = input.value.trim();
         const elapsed = Date.now() - start;
-        if(message.length == 0 || message.length > keycount || elapsed < 50){
+        if(message.length == 0){
+            alert("Please type something.")
+            return
+        }
+        if(message.length != 0 || message.length > keycount || elapsed < 50){
             alert("Stop botting.");
             return;
         }
