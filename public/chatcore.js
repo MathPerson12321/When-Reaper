@@ -129,7 +129,7 @@ document.addEventListener("DOMContentLoaded", async() => {
     chatHeader.style.borderBottom = "1.5px solid #ccc";
     const headerText = document.createElement("h1");
     let cr = getChat();
-    headerText.textContent = cr.charAt(0).toUpperCase() + cr.slice(1) + " Chat";
+    headerText.innerHTML = cr.charAt(0).toUpperCase() + cr.slice(1) + " Chat";
     headerText.style.textAlign = "center";
     headerText.style.fontSize = "20px";
     chatHeader.appendChild(headerText);
@@ -173,7 +173,7 @@ document.addEventListener("DOMContentLoaded", async() => {
     let messages = await loadMessages(50,user);
     for (const msg of messages) {
         const msgdiv = document.createElement("div");
-        msgdiv.textContent = "<b>"+msg.username+":</b> " + msg.message;
+        msgdiv.innerHTML = "<b>"+msg.username+":</b> " + msg.message;
         chatWindow.appendChild(msgdiv);
     }
     chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -189,7 +189,7 @@ document.addEventListener("DOMContentLoaded", async() => {
             if(data.chat == chatroom){
                 const {username, message} = data.message;
                 const msgdiv = document.createElement("div");
-                msgdiv.textContent = "<b>"+username+":</b> " + message;
+                msgdiv.innerHTML = "<b>"+username+":</b> " + message;
                 chatWindow.appendChild(msgdiv);
                 chatWindow.scrollTop = chatWindow.scrollHeight;
             }
