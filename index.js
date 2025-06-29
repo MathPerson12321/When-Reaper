@@ -314,8 +314,8 @@ app.post("/loadchatmessages", authenticateToken, async (req, res) => {
   let query = chatRef.orderBy("timestamp", "desc").limit(safeLimit);
 
   if(before){
-      //Convert string to Firestore Timestamp (if needed)
-      query = query.startAfter(new Date(before));
+      const beforeDate = new Date(before);
+      query = query.startAfter(admin.firestore.Timestamp.fromDate(beforeDate));
   }
 
   const snapshot = await query.get();
