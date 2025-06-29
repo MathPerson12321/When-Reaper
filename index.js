@@ -221,6 +221,7 @@ function isAlphanumeric(name){
 }
 
 async function isValid(name){
+  console.log(name)
   const json = path.join(__dirname,"profanitydoc.json");
   const file = await readFile(json,"utf-8");
   const bannedwords = JSON.parse(file);
