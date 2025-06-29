@@ -120,6 +120,20 @@ document.addEventListener("DOMContentLoaded", async() => {
     chatContainer.style.fontFamily = "Arial, sans-serif";
     chatContainer.style.boxShadow = "0 0 10px rgba(0,0,0,0.1)";
     document.body.appendChild(chatContainer);
+
+    //Header
+    const chatHeader = document.createElement("div");
+    chatHeader.style.flex = "1";
+    chatHeader.style.overflowY = "auto";
+    chatHeader.height = "50px";
+    chatHeader.style.borderBottom = "1.5px solid #ccc";
+    const headerText = document.createElement("h1");
+    let cr = getChat();
+    headerText.textContent = cr.charAt(0).toUpperCase() + cr.slice(1) + " Chat";
+    headerText.style.textAlign = "center";
+    headerText.style.fontSize = "20px";
+    chatHeader.appendChild(headerText);
+    chatContainer.appendChild(chatHeader);
   
     //Chat window area
     const chatWindow = document.createElement("div");
