@@ -142,11 +142,10 @@ document.addEventListener("DOMContentLoaded", async() => {
     chatContainer.appendChild(inputContainer);
 
     let messages = await loadMessages(50,user);
-    console.log(messages)
     for (const msg of messages) {
         const msgdiv = document.createElement("div");
         msgdiv.textContent = msg.username+": " + msg.message;
-        chatWindow.prepend(msgdiv);
+        chatWindow.appendChild(msgdiv);
     }
 
     input.addEventListener("keydown", () => {
