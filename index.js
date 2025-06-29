@@ -229,6 +229,29 @@ function isValid(text) {
   return true;
 }
 
+async function addBomb(user){
+  const snapshot = await db.ref(`game${gamenum}/special/bombs/counts/user`).once("value");
+  let bombs = snapshot.val()
+  await db.ref(`game${gamenum}/special/bombs/counts`).set({user:bombs+1});
+}
+
+async function bombBonus(gamenum,user){
+  const snapshot = await db.ref(`game${gamenum}/special/bombs`).once("value");
+  const arr = snapshot.val();
+  let bonus = rate + (rate*(Math.log(rate*reaps+1)));
+  console.log(bonus)
+  const rand = Math.random() * 100;
+  if(rand < bonus){
+    await db.ref(`game${gamenum}/special/bombs/reapspassed`).set(0);
+    addBomb(user)
+    return true;
+  }else{
+    let reapspass = db.ref(`game${gamenum}/special/bombs/reapspassed`).once("value");
+    await db.ref(`game${gamenum}/special/bombs/reapspassed`).set(reapspass.val()+1);
+    return false;
+  }
+}
+
 // ------------------ WebSocket connection logs ------------------
 
 wss.on("connection", (ws) => {
@@ -288,11 +311,11 @@ app.post("/loadchatmessages", authenticateToken, async (req, res) => {
   }
   let chat = getChat(url)
   const chatRef = firestore.collection("gamechat").doc(chat+"chat").collection("messages");
-  let query = chatRef.orderBy("timestamp", "asc").limit(safeLimit);
+  let query = chatRef.orderBy("timestamp", "desc").limit(safeLimit);
 
   if(before){
       //Convert string to Firestore Timestamp (if needed)
-      query = query.endBefore(new Date(before));
+      query = query.startAfter(new Date(before));
   }
 
   const snapshot = await query.get();
@@ -471,6 +494,10 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
       reapTimestamps.length > 0 ? Math.max(...reapTimestamps) : data.starttime;
 
     let timeGained = now - lastReapTimestamp;
+    if(bombBonus(gamenum,username)){
+      console.log("BOMB")
+    }
+
     const rawbonuses = await getBonuses();
     const rawdividers = await getDivisors();
     const bonuses = Object.entries(rawbonuses).sort((a, b) => b[1] - a[1]);

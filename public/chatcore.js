@@ -22,13 +22,13 @@ function getChat(){
 
 let lastTimestamp = null;
 let loading = false;
-
+let allLoaded = false;
 let typing = false;
 let start = null;
 let keycount = 0;
 
 async function loadMessages(limit,user){
-    if (loading) return;
+    if (loading || allLoaded) return;
     loading = true;
     const idToken = await user.getIdToken();
     const data = {
@@ -45,16 +45,19 @@ async function loadMessages(limit,user){
         body: JSON.stringify(data),
     });
     let messages = await res.json();
-    if (messages.length > 0) {
-        const firstTimestamp = messages[0].timestamp;
-        if (firstTimestamp.toDate) {
-          lastTimestamp = firstTimestamp.toDate().toISOString();
-        } else {
-          lastTimestamp = firstTimestamp;
-        }
+    if (messages.length == 0) {
+        allLoaded = true;
+        loading = false;
+        return;
+    }
+    const firstTimestamp = messages[0].timestamp;
+    if (firstTimestamp.toDate) {
+        lastTimestamp = firstTimestamp.toDate().toISOString();
+    } else {
+        lastTimestamp = firstTimestamp;
     }
     loading = false;
-    return messages;
+    return messages.reverse();
 }
 
 async function sendMessage(user){
@@ -100,15 +103,19 @@ async function sendMessage(user){
     }
 }
 
-function addMessage(username,message){
+function addMessage(username,message,prepend = false){
     const msgdiv = document.createElement("div");
     msgdiv.innerHTML = "<b>"+username+":</b> " + message;
     if(username == "MathPerson12321"){
         msgdiv.innerHTML = "<b>👑 "+username+":</b> " + message;
     }
     let chatWindow = document.getElementById("chatwindow");
-    chatWindow.appendChild(msgdiv);
-    chatWindow.scrollTop = chatWindow.scrollHeight;
+    if(prepend){
+        chatWindow.insertBefore(msgdiv, chatWindow.firstChild);
+    }else{
+        chatWindow.appendChild(msgdiv);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
 }
 
 document.addEventListener("DOMContentLoaded", async() => {
@@ -191,6 +198,16 @@ document.addEventListener("DOMContentLoaded", async() => {
         addMessage(msg.username,msg.message);
     }
     chatWindow.scrollTop = chatWindow.scrollHeight;
+    chatWindow.addEventListener("scroll", async () => {
+        if(chatWindow.scrollTop <= 5 && !loading && !allLoaded){
+          const oldHeight = chatWindow.scrollHeight;
+          const older = await loadMessages(50,user);
+          for(const msg of older){
+            addMessage(msg.username,msg.message,true);
+          }
+          chatWindow.scrollTop = chatWindow.scrollHeight-oldHeight;
+        }
+    });
 
     let chatroom = getChat();
     const ws = new WebSocket(`wss://reaperclone.onrender.com/?room=${chatroom}`);
@@ -211,7 +228,6 @@ document.addEventListener("DOMContentLoaded", async() => {
         button.disabled = true;
         input.placeholder = "Disconnected. Please refresh.";
     });
-      
 
     input.addEventListener("keydown", () => {
         if(!typing){
