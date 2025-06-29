@@ -366,10 +366,10 @@ app.post("/usercheck", authenticateToken, async (req, res) => {
   const { username: name } = req.body;
   const id = req.user.uid;
 
-  if(!isAlphanumeric(username)){
+  if(!isAlphanumeric(name)){
     return res.status(400).json({allowed:"Username must be alphanumeric."});
   }
-  let valid = await isValid(username);
+  let valid = await isValid(name);
   if(!valid){
     return res.status(200).json({allowed:"Contains banned term." });
   }
