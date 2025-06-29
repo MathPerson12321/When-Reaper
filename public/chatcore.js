@@ -172,7 +172,7 @@ document.addEventListener("DOMContentLoaded", async() => {
     ws.addEventListener("message", (event) => {
         const data = JSON.parse(event.data);
         if (data.type === "chatmessage") {
-            if (data.chat === chatroom) {
+            if(data.chat == chatroom){
                 const {username, message} = data.message;
                 const msgdiv = document.createElement("div");
                 msgdiv.textContent = username + ": " + message;
