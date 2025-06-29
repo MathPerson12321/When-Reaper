@@ -5,6 +5,21 @@ const link = "https://reaperclone.onrender.com/";
 const auth = getAuth(app);
 const currentUser = auth.currentUser;
 
+function getChat(){
+    let curlink = window.location.href;
+    const split = curlink.split("/");
+    if (split[split.length - 1] ==="") {
+      split.pop();
+    }
+    let chat ="";
+    if (split[split.length - 1].includes(".com")) {
+      chat ="lobby";
+    } else {
+      chat = split[split.length - 1];
+    }
+    return chat;
+}
+
 let lastTimestamp = null;
 let loading = false;
 
@@ -147,6 +162,22 @@ document.addEventListener("DOMContentLoaded", async() => {
         msgdiv.textContent = msg.username+": " + msg.message;
         chatWindow.appendChild(msgdiv);
     }
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+
+    let chatroom = getChat();
+    const ws = new WebSocket(`wss://reaperclone.onrender.com/?room=${chatroom}`);
+    ws.addEventListener("open", () => {
+        console.log("WebSocket connected to room:", chatRoom);
+    });
+    ws.addEventListener("message", (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === "chatmessage") {
+        const msgdiv = document.createElement("div");
+        msgdiv.textContent = data.username+": " + data.message;
+        chatWindow.appendChild(msgdiv);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+    });
 
     input.addEventListener("keydown", () => {
         if(!typing){

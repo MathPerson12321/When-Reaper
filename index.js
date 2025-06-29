@@ -210,7 +210,7 @@ function getChat(curlink){
   return chat;
 }
 
-async function isAlphanumeric(name){
+function isAlphanumeric(name){
   const isValid = /^[a-z0-9]+$/i.test(name);
   if (!isValid) {
     return false;
@@ -321,7 +321,8 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
   if(!isAlphanumeric(username)){
     res.status(400).json({msg:"Message must be alphanumeric."});
   }
-  if(!isValid(username)){
+  let valid = await isValid(username);
+  if(!valid){
     res.status(200).json({msg:"Contains banned term."});
   }
 
@@ -332,7 +333,22 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
     timestamp: admin.firestore.FieldValue.serverTimestamp(),
   };
 
-  await chatDocRef.add(newMessage);
+  const docRef = await chatDocRef.add(newMessage);
+
+  const savedDoc = await docRef.get();
+  const savedMessage = savedDoc.data();
+
+  // Broadcast to all WS clients
+  broadcast({
+    type: "chatmessage",
+    chat,
+    message: {
+      userid: savedMessage.userid,
+      username: savedMessage.username,
+      message: savedMessage.message,
+      timestamp: savedMessage.timestamp.toDate().toISOString(),
+    }
+  });
 
   res.json({msg:"Message received." });
 });
@@ -345,7 +361,8 @@ app.post("/usercheck", authenticateToken, async (req, res) => {
   if(!isAlphanumeric(username)){
     res.status(400).json({allowed:"Username must be alphanumeric."});
   }
-  if(!isValid(username)){
+  let valid = await isValid(username);
+  if(!valid){
     res.status(200).json({allowed:"Contains banned term." });
   }
 

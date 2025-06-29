@@ -205,7 +205,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await updateAll();
 
   // Initialize WebSocket
-  const socket = new WebSocket("wss://reaperclone.onrender.com?game=" + gamenum+"/");
+  const socket = new WebSocket("wss://reaperclone.onrender.com?game="+gamenum+"/");
   socket.addEventListener("message", async (event) => {
     const msgData = JSON.parse(event.data);
     if (msgData.type === "reap"){
