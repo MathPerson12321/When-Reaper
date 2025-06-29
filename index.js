@@ -207,7 +207,27 @@ function getChat(curlink){
   } else {
     chat = split[split.length - 1];
   }
-  return chat
+  return chat;
+}
+
+async function isAlphanumeric(name){
+  const isValid = /^[a-z0-9]+$/i.test(name);
+  if (!isValid) {
+    return false;
+  }
+  return true;
+}
+
+async function isValid(name){
+  const json = path.join(__dirname,"profanitydoc.json");
+  const file = await readFile(json,"utf-8");
+  const bannedwords = JSON.parse(file);
+  for (let i = 0; i < bannedwords.length; i++) {
+    if (name.toLowerCase().includes(bannedwords[i].toLowerCase())) {
+      return false;
+    }
+  }
+  return true;
 }
 
 // ------------------ WebSocket connection logs ------------------
@@ -298,6 +318,13 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
   let chat = getChat(curlink)
   const chatDocRef = firestore.collection("gamechat").doc(chat +"chat").collection("messages");
 
+  if(!isAlphanumeric(username)){
+    res.status(400).json({msg:"Message must be alphanumeric."});
+  }
+  if(!isValid(username)){
+    res.status(200).json({msg:"Contains banned term."});
+  }
+
   const newMessage = {
     userid: userId,
     username,
@@ -307,7 +334,7 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
 
   await chatDocRef.add(newMessage);
 
-  res.json({ msg:"Message received." });
+  res.json({msg:"Message received." });
 });
 
 // User creation / check route - token required
@@ -315,14 +342,11 @@ app.post("/usercheck", authenticateToken, async (req, res) => {
   const { username: name } = req.body;
   const id = req.user.uid;
 
-  // Profanity check
-  const json = path.join(__dirname,"profanitydoc.json");
-  const file = await readFile(json,"utf-8");
-  const bannedwords = JSON.parse(file);
-  for (let i = 0; i < bannedwords.length; i++) {
-    if (name.toLowerCase().includes(bannedwords[i].toLowerCase())) {
-      return res.status(200).json({ allowed:"Contains banned term." });
-    }
+  if(!isAlphanumeric(username)){
+    res.status(400).json({allowed:"Username must be alphanumeric."});
+  }
+  if(!isValid(username)){
+    res.status(200).json({allowed:"Contains banned term." });
   }
 
   const result = await addUser(name, id);
