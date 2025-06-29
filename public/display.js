@@ -72,7 +72,7 @@ function makeLeaderboard(){
   for (let i=0;i<headers.length;i++){
     const th = document.createElement("th");
     th.textContent = headers[i];
-    th.style.padding = "4px 8px";
+    th.style.padding = "4px 4px";
     th.style.width = colminwidths[i];
     trow.appendChild(th);
   }
@@ -103,7 +103,7 @@ function makeLeaderboard(){
 
   function createCell(text,colIndex){
     const td = document.createElement("td");
-    td.style.padding = "4px 8px";
+    td.style.padding = "4px 4px";
     td.style.whiteSpace = "nowrap"; //Prevent line breaks
     td.style.textAlign = "left";
     td.textContent = text;
