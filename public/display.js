@@ -91,18 +91,18 @@ function makeLeaderboard(){
     tr.className = "lb-entry";
     tr.id = "rank-" + (i + 1);
 
-    tr.appendChild(createCell(i + 1));
-    tr.appendChild(createCell(username));
-    tr.appendChild(createCell(stats.time.toFixed(3)));
-    tr.appendChild(createCell(stats.reapcount));
-    tr.appendChild(createCell((stats.time / stats.reapcount).toFixed(3)));
+    tr.appendChild(createCell(i+1,0));
+    tr.appendChild(createCell(username,1));
+    tr.appendChild(createCell(stats.time.toFixed(3),2));
+    tr.appendChild(createCell(stats.reapcount,3));
+    tr.appendChild(createCell((stats.time/stats.reapcount).toFixed(3),4));
 
     tbody.appendChild(tr);
   }
   table.appendChild(tbody);
   parent.appendChild(table);
 
-  function createCell(text){
+  function createCell(text,colInde){
     const td = document.createElement("td");
     td.style.padding = "4px 8px";
     td.style.whiteSpace = "nowrap"; //Prevent line breaks
