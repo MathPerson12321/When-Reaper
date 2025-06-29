@@ -129,7 +129,11 @@ document.addEventListener("DOMContentLoaded", async() => {
     chatHeader.style.borderBottom = "1.5px solid #ccc";
     const headerText = document.createElement("h1");
     let cr = getChat();
-    headerText.innerHTML = cr.charAt(0).toUpperCase() + cr.slice(1) + " Chat";
+    if(cr.includes("Game")){
+        headerText.innerHTML = "Game " + cr.slice(4) + " Chat";
+    }else{
+        headerText.innerHTML = cr.chatAt(0).toUpperCase() + cr.slice(1) + " Chat";
+    }
     headerText.style.textAlign = "center";
     headerText.style.fontSize = "20px";
     chatHeader.appendChild(headerText);
