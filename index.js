@@ -8,6 +8,10 @@ import fs from "fs";
 import {readFile} from "fs/promises";
 import {fileURLToPath} from "url";
 
+import Filter from 'bad-words';
+
+const filter = new Filter();
+
 const chatCooldowns = new Map(); // userId => timestamp
 
 // Setup __dirname for ES modules
@@ -220,17 +224,8 @@ function isAlphanumeric(name){
   return true;
 }
 
-async function isValid(name){
-  const json = path.join(__dirname,"profanitydoc.json");
-  const file = await readFile(json,"utf-8");
-  const bannedwords = JSON.parse(file);
-  for (let i = 0; i < bannedwords.length; i++) {
-    if (name.toLowerCase().includes(bannedwords[i].toLowerCase())) {
-      console.log([name,bannedwords[i]])
-      return false;
-    }
-  }
-  return true;
+function isValid(text) {
+  return !filter.isProfane(text);
 }
 
 // ------------------ WebSocket connection logs ------------------
@@ -327,8 +322,13 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
   const username = await getUsername(userId);
   let chat = getChat(curlink)
   const chatDocRef = firestore.collection("gamechat").doc(chat +"chat").collection("messages");
-
-  let valid = await isValid(message);
+  for (const char of message){
+    const code = char.charCodeAt(0);
+    if(!(code >= 32 && code <= 126)){
+      res.status(200).json({msg:"Contains unknown letter or symbol."});
+    }
+  }
+  let valid = isValid(message);
   if(!valid){
     return res.status(200).json({msg:"Contains banned term."});
   }
@@ -370,7 +370,7 @@ app.post("/usercheck", authenticateToken, async (req, res) => {
   if(!isAlphanumeric(name)){
     return res.status(400).json({allowed:"Username must be alphanumeric."});
   }
-  let valid = await isValid(name);
+  let valid = isValid(name);
   if(!valid){
     return res.status(200).json({allowed:"Contains banned term." });
   }
