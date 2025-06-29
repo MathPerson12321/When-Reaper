@@ -327,9 +327,6 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
   let chat = getChat(curlink)
   const chatDocRef = firestore.collection("gamechat").doc(chat +"chat").collection("messages");
 
-  if(!isAlphanumeric(message)){
-    return res.status(400).json({msg:"Message must be alphanumeric."});
-  }
   let valid = await isValid(message);
   if(!valid){
     return res.status(200).json({msg:"Contains banned term."});
