@@ -307,18 +307,18 @@ app.post("/loadchatmessages", authenticateToken, async (req, res) => {
   }
   let chat = getChat(url)
   const chatRef = firestore.collection("gamechat").doc(chat+"chat").collection("messages");
-  let query = chatRef.orderBy("timestamp", "asc").limit(safeLimit);
+  let query = chatRef.orderBy("timestamp", "desc").limit(safeLimit);
 
   if (before) {
     const beforeDate = new Date(before);
     if (!isNaN(beforeDate.getTime())) {
-      query = query.endBefore(admin.firestore.Timestamp.fromDate(beforeDate));
+      query = query.startAfter(admin.firestore.Timestamp.fromDate(beforeDate));
     }
   }  
 
   const snapshot = await query.get();
   const messages = snapshot.docs.map(doc => doc.data());
-
+  messages = messages.reverse();
   res.json(messages);
 });
 
