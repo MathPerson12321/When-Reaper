@@ -106,6 +106,7 @@ function addMessage(username,message){
     if(username == "MathPerson12321"){
         msgdiv.innerHTML = "<b>👑 "+username+":</b> " + message;
     }
+    let chatWindow = document.getElementById("chatwindow");
     chatWindow.appendChild(msgdiv);
     chatWindow.scrollTop = chatWindow.scrollHeight;
 }
@@ -155,6 +156,7 @@ document.addEventListener("DOMContentLoaded", async() => {
     chatWindow.style.padding = "10px";
     chatWindow.style.overflowY = "auto";
     chatWindow.style.fontSize = "14px";
+    chatWindow.id = "chatwindow";
     chatContainer.appendChild(chatWindow);
   
     const inputContainer = document.createElement("div");
