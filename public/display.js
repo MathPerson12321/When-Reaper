@@ -68,13 +68,13 @@ function makeLeaderboard(){
   const trow = document.createElement("tr");
   table.style.tableLayout = "fixed";
   table.style.width = "100%";
-  const colwidths = ["50px", "140px", "80px", "60px", "80px"];
+  const colminwidths = ["3ch", "8ch", "5ch", "4ch", "5ch"];
   const headers = ["Rank","Username","Time","Reaps","Average"];
   for (let i=0;i<headers.length;i++){
     const th = document.createElement("th");
     th.textContent = headers[i];
-    th.style.width = colwidths[i];
     th.style.padding = "4px 8px";
+    th.style.width = colminwidths[i];
     trow.appendChild(th);
   }
   thead.appendChild(trow);
@@ -108,6 +108,7 @@ function makeLeaderboard(){
     td.style.whiteSpace = "nowrap"; //Prevent line breaks
     td.style.textAlign = "left";
     td.textContent = text;
+    td.style.minWidth = colminwidths[colIndex];
     return td;
   }
 }
