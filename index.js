@@ -317,7 +317,7 @@ app.post("/loadchatmessages", authenticateToken, async (req, res) => {
   }  
 
   const snapshot = await query.get();
-  const messages = snapshot.docs.map(doc => doc.data());
+  let messages = snapshot.docs.map(doc => doc.data());
   messages = messages.reverse();
   res.json(messages);
 });
