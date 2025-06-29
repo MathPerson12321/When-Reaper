@@ -226,6 +226,7 @@ async function isValid(name){
   const bannedwords = JSON.parse(file);
   for (let i = 0; i < bannedwords.length; i++) {
     if (name.toLowerCase().includes(bannedwords[i].toLowerCase())) {
+      console.log([name,bannedwords[i]])
       return false;
     }
   }
