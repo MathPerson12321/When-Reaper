@@ -132,7 +132,7 @@ document.addEventListener("DOMContentLoaded", async() => {
     if(cr.includes("Game")){
         headerText.innerHTML = "Game " + cr.slice(4) + " Chat";
     }else{
-        headerText.innerHTML = cr.chatAt(0).toUpperCase() + cr.slice(1) + " Chat";
+        headerText.innerHTML = cr.charAt(0).toUpperCase() + cr.slice(1) + " Chat";
     }
     headerText.style.textAlign = "center";
     headerText.style.fontSize = "20px";
