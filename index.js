@@ -127,7 +127,7 @@ async function isLoggedIn(id) {
 async function getUsername(userId) {
   const userdoc = await firestore.collection("users").doc(userId).get();
   const userData = userdoc.data();
-  if (!userData) throw newerror("User not found");
+  if (!userData) throw new Error("User not found");
   return userData.username;
 }
 
@@ -236,8 +236,10 @@ async function addBomb(user){
 }
 
 async function bombBonus(gamenum,user){
-  const snapshot = await db.ref(`game${gamenum}/special/bombs`).once("value");
-  const arr = snapshot.val();
+  let reaps = await db.ref(`game${gamenum}/special/bombs/reapspassed`).once("value");
+  let rate = await db.ref(`game${gamenum}/special/rate`).once("value");
+  reaps = reaps.val();
+  rate = rate.val();
   let bonus = rate + (rate*(Math.log(rate*reaps+1)));
   console.log(bonus)
   const rand = Math.random() * 100;
@@ -246,7 +248,7 @@ async function bombBonus(gamenum,user){
     addBomb(user)
     return true;
   }else{
-    let reapspass = db.ref(`game${gamenum}/special/bombs/reapspassed`).once("value");
+    let reapspass = await db.ref(`game${gamenum}/special/bombs/reapspassed`).once("value");
     await db.ref(`game${gamenum}/special/bombs/reapspassed`).set(reapspass.val()+1);
     return false;
   }
@@ -291,12 +293,6 @@ app.get("/users/:userid", async (req, res) => {
   res.json(registered);
 });
 
-app.get("/users/:userid", async (req, res) => {
-  const id = req.params.userid;
-  const registered = await isLoggedIn(id);
-  res.json(registered);
-});
-
 app.post("/loadchatmessages", authenticateToken, async (req, res) => {
   const {url,limit,before} = req.body;
   const userId = req.user.uid; // Firebase ID token validation
@@ -313,10 +309,15 @@ app.post("/loadchatmessages", authenticateToken, async (req, res) => {
   const chatRef = firestore.collection("gamechat").doc(chat+"chat").collection("messages");
   let query = chatRef.orderBy("timestamp", "desc").limit(safeLimit);
 
-  if(before){
-      const beforeDate = new Date(before);
+  if (before) {
+    const beforeDate = new Date(before);
+    if (isNaN(beforeDate.getTime())) {
+      console.warn("Invalid before timestamp:", before);
+      // handle invalid date case - maybe ignore 'before' or send error
+    } else {
       query = query.startAfter(admin.firestore.Timestamp.fromDate(beforeDate));
-  }
+    }
+  }  
 
   const snapshot = await query.get();
   const messages = snapshot.docs.map(doc => doc.data());
@@ -349,7 +350,7 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
   for (const char of message){
     const code = char.charCodeAt(0);
     if(!(code >= 32 && code <= 126)){
-      res.status(200).json({msg:"Contains unknown letter or symbol."});
+      return res.status(200).json({msg:"Contains unknown letter or symbol."});
     }
   }
   let valid = isValid(message);
@@ -614,27 +615,26 @@ app.get("/:gameid/gamedata", async (req, res) => {
 app.use(express.static(path.join(__dirname,"public")));
 
 // ------------------ Catch-all 404 ------------------
+const publicPaths = [
+  "/",
+   /^\/game\d+$/,
+   /^\/public\//,
+ ];
+ 
+ app.use((req, res, next) => {
+   const isAllowed = publicPaths.some((path) => {
+     return typeof path ==="string" ? req.path === path : path.test(req.path);
+   });
+ 
+   if (!isAllowed && req.method !=="POST" && req.path !=="/healthz") {
+     return res.status(403).json({error:"Forbidden" });
+   }
+   next();
+ });
 
 app.use((req, res) => {
   console.log(`[SERVER] 404 Not Found for ${req.method} ${req.originalUrl}`);
   res.status(404).send("Not Found");
-});
-
-const publicPaths = [
- "/",
-  /^\/game\d+$/,
-  /^\/public\//,
-];
-
-app.use((req, res, next) => {
-  const isAllowed = publicPaths.some((path) => {
-    return typeof path ==="string" ? req.path === path : path.test(req.path);
-  });
-
-  if (!isAllowed && req.method !=="POST" && req.path !=="/healthz") {
-    return res.status(403).json({error:"Forbidden" });
-  }
-  next();
 });
 
 // ------------------ Start Server ------------------ 
