@@ -225,6 +225,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  socket.addEventListener("close", () => {
+    const banner = document.createElement("p");
+    banner.innerHTML = "<b>Connection lost. Please refresh the page.</b>";
+    document.body.appendChild(banner);
+
+    document.getElementById("reapbutton").disabled = true;
+  });
+
   document.getElementById("reapbutton").addEventListener("click", (e) => {
     if (!e.isTrusted) {
       return;

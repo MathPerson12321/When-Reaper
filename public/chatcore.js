@@ -206,6 +206,11 @@ document.addEventListener("DOMContentLoaded", async() => {
             }
         }
     });
+    ws.addEventListener("close", () => {
+        input.disabled = true;
+        button.disabled = true;
+        input.placeholder = "Disconnected. Please refresh.";
+    });
       
 
     input.addEventListener("keydown", () => {
