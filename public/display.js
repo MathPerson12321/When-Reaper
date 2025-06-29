@@ -66,11 +66,15 @@ function makeLeaderboard(){
   table.border = "1";
   const thead = document.createElement("thead");
   const trow = document.createElement("tr");
-
+  table.style.tableLayout = "fixed";
+  table.style.width = "100%";
+  const colwidths = ["50px", "140px", "80px", "60px", "80px"];
   const headers = ["Rank","Username","Time","Reaps","Average"];
-  for (let header of headers){
+  for (let i=0;i<headers.length;i++){
     const th = document.createElement("th");
-    th.textContent = header;
+    th.textContent = headers[i];
+    th.style.width = colwidths[i];
+    th.style.padding = "4px 8px";
     trow.appendChild(th);
   }
   thead.appendChild(trow);
@@ -81,14 +85,14 @@ function makeLeaderboard(){
   entries.sort((a,b) => b[1].time - a[1].time);
 
   for (let i = 0; i < entries.length; i++){
-    const userid = entries[i][0];
+    const username = entries[i][0];
     const stats = entries[i][1];
     const tr = document.createElement("tr");
     tr.className = "lb-entry";
     tr.id = "rank-" + (i + 1);
 
     tr.appendChild(createCell(i + 1));
-    tr.appendChild(createCell(userid));
+    tr.appendChild(createCell(username));
     tr.appendChild(createCell(stats.time.toFixed(3)));
     tr.appendChild(createCell(stats.reapcount));
     tr.appendChild(createCell((stats.time / stats.reapcount).toFixed(3)));
@@ -100,6 +104,9 @@ function makeLeaderboard(){
 
   function createCell(text){
     const td = document.createElement("td");
+    td.style.padding = "4px 8px";
+    td.style.whiteSpace = "nowrap"; //Prevent line breaks
+    td.style.textAlign = "left";
     td.textContent = text;
     return td;
   }
