@@ -68,7 +68,7 @@ function makeLeaderboard(){
   const trow = document.createElement("tr");
   table.style.tableLayout = "fixed";
   table.style.width = "100%";
-  const colminwidths = ["3ch", "8ch", "5ch", "4ch", "5ch"];
+  const colminwidths = ["1ch", "5ch", "3ch", "1ch", "2ch"];
   const headers = ["Rank","Username","Time","Reaps","Average"];
   for (let i=0;i<headers.length;i++){
     const th = document.createElement("th");
