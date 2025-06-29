@@ -100,6 +100,16 @@ async function sendMessage(user){
     }
 }
 
+function addMessage(username,message){
+    const msgdiv = document.createElement("div");
+    msgdiv.innerHTML = "<b>"+username+":</b> " + message;
+    if(username == "MathPerson12321"){
+        msgdiv.innerHTML = "<b>👑 "+username+":</b> " + message;
+    }
+    chatWindow.appendChild(msgdiv);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
 document.addEventListener("DOMContentLoaded", async() => {
     const user = await checkAuthAndRedirect();
     if (!user) {
@@ -176,9 +186,7 @@ document.addEventListener("DOMContentLoaded", async() => {
 
     let messages = await loadMessages(50,user);
     for (const msg of messages) {
-        const msgdiv = document.createElement("div");
-        msgdiv.innerHTML = "<b>"+msg.username+":</b> " + msg.message;
-        chatWindow.appendChild(msgdiv);
+        addMessage(msg.username,msg.message);
     }
     chatWindow.scrollTop = chatWindow.scrollHeight;
 
@@ -192,10 +200,7 @@ document.addEventListener("DOMContentLoaded", async() => {
         if (data.type === "chatmessage") {
             if(data.chat == chatroom){
                 const {username, message} = data.message;
-                const msgdiv = document.createElement("div");
-                msgdiv.innerHTML = "<b>"+username+":</b> " + message;
-                chatWindow.appendChild(msgdiv);
-                chatWindow.scrollTop = chatWindow.scrollHeight;
+                addMessage(username,message);
             }
         }
     });
