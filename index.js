@@ -8,8 +8,10 @@ import fs from "fs";
 import {readFile} from "fs/promises";
 import {fileURLToPath} from "url";
 
-import pkg from 'bad-words';
-const Filter = pkg;
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const Filter = require('bad-words');
+
 const filter = new Filter();
 
 const chatCooldowns = new Map(); // userId => timestamp
