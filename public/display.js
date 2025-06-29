@@ -102,7 +102,7 @@ function makeLeaderboard(){
   table.appendChild(tbody);
   parent.appendChild(table);
 
-  function createCell(text,colInde){
+  function createCell(text,colIndex){
     const td = document.createElement("td");
     td.style.padding = "4px 8px";
     td.style.whiteSpace = "nowrap"; //Prevent line breaks
