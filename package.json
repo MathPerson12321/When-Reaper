@@ -8,6 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "bad-words": "^4.0.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "firebase-admin": "^13.4.0",
