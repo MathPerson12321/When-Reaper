@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", async() => {
     chatHeader.style.borderBottom = "1.5px solid #ccc";
     const headerText = document.createElement("h1");
     let cr = getChat();
-    if(cr.includes("Game")){
+    if(cr.substring(0,4) == "Game"){
         headerText.innerHTML = "Game " + cr.slice(4) + " Chat";
     }else{
         headerText.innerHTML = cr.charAt(0).toUpperCase() + cr.slice(1) + " Chat";
