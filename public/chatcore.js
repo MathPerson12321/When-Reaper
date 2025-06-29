@@ -172,12 +172,14 @@ document.addEventListener("DOMContentLoaded", async() => {
     ws.addEventListener("message", (event) => {
         const data = JSON.parse(event.data);
         if (data.type === "chatmessage") {
-        const msgdiv = document.createElement("div");
-        msgdiv.textContent = data.username+": " + data.message;
-        chatWindow.appendChild(msgdiv);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+          const {username, message} = data.message;
+          const msgdiv = document.createElement("div");
+          msgdiv.textContent = username+": " + message;
+          chatWindow.appendChild(msgdiv);
+          chatWindow.scrollTop = chatWindow.scrollHeight;
         }
     });
+      
 
     input.addEventListener("keydown", () => {
         if(!typing){
