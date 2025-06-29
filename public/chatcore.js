@@ -173,7 +173,7 @@ document.addEventListener("DOMContentLoaded", async() => {
     let messages = await loadMessages(50,user);
     for (const msg of messages) {
         const msgdiv = document.createElement("div");
-        msgdiv.textContent = msg.username+": " + msg.message;
+        msgdiv.textContent = "<b>"+msg.username+":</b> " + msg.message;
         chatWindow.appendChild(msgdiv);
     }
     chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -189,7 +189,7 @@ document.addEventListener("DOMContentLoaded", async() => {
             if(data.chat == chatroom){
                 const {username, message} = data.message;
                 const msgdiv = document.createElement("div");
-                msgdiv.textContent = username + ": " + message;
+                msgdiv.textContent = "<b>"+username+":</b> " + message;
                 chatWindow.appendChild(msgdiv);
                 chatWindow.scrollTop = chatWindow.scrollHeight;
             }
