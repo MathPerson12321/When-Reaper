@@ -8,8 +8,8 @@ import fs from "fs";
 import {readFile} from "fs/promises";
 import {fileURLToPath} from "url";
 
-import Filter from 'bad-words';
-
+import pkg from 'bad-words';
+const Filter = pkg;
 const filter = new Filter();
 
 const chatCooldowns = new Map(); // userId => timestamp
