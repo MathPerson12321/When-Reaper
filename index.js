@@ -8,6 +8,8 @@ import fs from "fs";
 import {readFile} from "fs/promises";
 import {fileURLToPath} from "url";
 
+const chatCooldowns = new Map(); // userId => timestamp
+
 // Setup __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -308,6 +310,13 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
   const { message, keycount, elapsed, url: curlink } = req.body;
   const userId = req.user.uid;
 
+  const now = Date.now();
+  const last = chatCooldowns.get(userId);
+  if (last && now - last < 5000) {
+    const waitTime = ((5000 - (now - last)) / 1000).toFixed(1);
+    return res.status(429).json({ msg: "Slow down."});
+  }
+
   if (!message || message.length === 0) {
     return res.json({ msg:"Trying to send an empty message, I'm not that stupid 🥀" });
   }
@@ -337,6 +346,8 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
 
   const savedDoc = await docRef.get();
   const savedMessage = savedDoc.data();
+
+  chatCooldowns.set(userId, now);
 
   // Broadcast to all WS clients
   broadcast({
