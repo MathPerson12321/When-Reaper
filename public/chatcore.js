@@ -167,7 +167,7 @@ document.addEventListener("DOMContentLoaded", async() => {
     let chatroom = getChat();
     const ws = new WebSocket(`wss://reaperclone.onrender.com/?room=${chatroom}`);
     ws.addEventListener("open", () => {
-        console.log("WebSocket connected to room:", chatRoom);
+        console.log("WebSocket connected to room:", chatroom);
     });
     ws.addEventListener("message", (event) => {
         const data = JSON.parse(event.data);
