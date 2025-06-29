@@ -307,7 +307,7 @@ app.post("/loadchatmessages", authenticateToken, async (req, res) => {
   }
   let chat = getChat(url)
   const chatRef = firestore.collection("gamechat").doc(chat+"chat").collection("messages");
-  let query = chatRef.orderBy("timestamp", "desc").limit(safeLimit);
+  let query = chatRef.orderBy("timestamp", "asc").limit(safeLimit);
 
   if (before) {
     const beforeDate = new Date(before);

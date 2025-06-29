@@ -55,6 +55,8 @@ async function loadMessages(limit,user){
     const firstTimestampRaw = firstmsg.timestamp;
     if(firstTimestampRaw.toDate){
         lastTimestamp = firstTimestampRaw.toDate().toISOString();
+    }else if(firstTimestampRaw._seconds){
+        lastTimestamp = new Date(firstTimestampRaw._seconds*1000 + firstTimestampRaw._nanoseconds/1e6).toISOString();
     }else{
         lastTimestamp = firstTimestampRaw;
     }
