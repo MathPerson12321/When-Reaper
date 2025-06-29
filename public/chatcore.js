@@ -50,12 +50,13 @@ async function loadMessages(limit,user){
         loading = false;
         return;
     }
-    const lastmsg = messages[messages.length - 1];
-    const lastTimestampRaw = lastmsg.timestamp;
-    if(lastTimestampRaw.toDate){
-        lastTimestamp = lastTimestampRaw.toDate().toISOString();
+    messages = messages.reverse();
+    const firstmsg = messages[0];
+    const firstTimestampRaw = firstmsg.timestamp;
+    if(firstTimestampRaw.toDate){
+        lastTimestamp = firstTimestampRaw.toDate().toISOString();
     }else{
-        lastTimestamp = lastTimestampRaw;
+        lastTimestamp = firstTimestampRaw;
     }
     loading = false;
     return messages.reverse();
