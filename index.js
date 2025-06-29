@@ -319,11 +319,11 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
   const chatDocRef = firestore.collection("gamechat").doc(chat +"chat").collection("messages");
 
   if(!isAlphanumeric(username)){
-    res.status(400).json({msg:"Message must be alphanumeric."});
+    return res.status(400).json({msg:"Message must be alphanumeric."});
   }
   let valid = await isValid(username);
   if(!valid){
-    res.status(200).json({msg:"Contains banned term."});
+    return res.status(200).json({msg:"Contains banned term."});
   }
 
   const newMessage = {
@@ -359,11 +359,11 @@ app.post("/usercheck", authenticateToken, async (req, res) => {
   const id = req.user.uid;
 
   if(!isAlphanumeric(username)){
-    res.status(400).json({allowed:"Username must be alphanumeric."});
+    return res.status(400).json({allowed:"Username must be alphanumeric."});
   }
   let valid = await isValid(username);
   if(!valid){
-    res.status(200).json({allowed:"Contains banned term." });
+    return res.status(200).json({allowed:"Contains banned term." });
   }
 
   const result = await addUser(name, id);
