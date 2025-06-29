@@ -28,7 +28,7 @@ let start = null;
 let keycount = 0;
 
 async function loadMessages(limit,user){
-    if (loading || allLoaded) return;
+    if (loading || allLoaded) return [];
     loading = true;
     const idToken = await user.getIdToken();
     const data = {
@@ -48,9 +48,8 @@ async function loadMessages(limit,user){
     if (messages.length == 0) {
         allLoaded = true;
         loading = false;
-        return;
+        return [];
     }
-    messages = messages.reverse();
     const firstmsg = messages[0];
     const firstTimestampRaw = firstmsg.timestamp;
     if(firstTimestampRaw.toDate){
@@ -61,7 +60,7 @@ async function loadMessages(limit,user){
         lastTimestamp = firstTimestampRaw;
     }
     loading = false;
-    return messages.reverse();
+    return messages;
 }
 
 async function sendMessage(user){

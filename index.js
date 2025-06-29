@@ -311,11 +311,8 @@ app.post("/loadchatmessages", authenticateToken, async (req, res) => {
 
   if (before) {
     const beforeDate = new Date(before);
-    if (isNaN(beforeDate.getTime())) {
-      console.warn("Invalid before timestamp:", before);
-      // handle invalid date case - maybe ignore 'before' or send error
-    } else {
-      query = query.startAfter(admin.firestore.Timestamp.fromDate(beforeDate));
+    if (!isNaN(beforeDate.getTime())) {
+      query = query.endBefore(admin.firestore.Timestamp.fromDate(beforeDate));
     }
   }  
 
