@@ -123,9 +123,9 @@ document.addEventListener("DOMContentLoaded", async() => {
 
     //Header
     const chatHeader = document.createElement("div");
-    chatHeader.style.flex = "1";
+    chatHeader.style.flex = "0 0 auto";
     chatHeader.style.overflowY = "auto";
-    chatHeader.padding = "10px";
+    chatHeader.style.padding = "10px";
     chatHeader.style.borderBottom = "1.5px solid #ccc";
     const headerText = document.createElement("h1");
     let cr = getChat();
