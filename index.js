@@ -8,11 +8,9 @@ import fs from "fs";
 import {readFile} from "fs/promises";
 import {fileURLToPath} from "url";
 
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const Filter = require('bad-words');
+import leoProfanity from 'leo-profanity';
 
-const filter = new Filter();
+leoProfanity.loadDictionary();
 
 const chatCooldowns = new Map(); // userId => timestamp
 
@@ -227,7 +225,8 @@ function isAlphanumeric(name){
 }
 
 function isValid(text) {
-  return !filter.isProfane(text);
+  //return leoProfanity.check(text);
+  return true;
 }
 
 // ------------------ WebSocket connection logs ------------------
