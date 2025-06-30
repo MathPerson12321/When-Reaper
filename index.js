@@ -229,10 +229,11 @@ function isValid(text) {
   return true;
 }
 
-async function addBomb(user,gamenum){
-  const snapshot = await db.ref(`game${gamenum}/special/bombs/counts/`+user).once("value");
-  let bombs = snapshot.val() || 0
-  await db.ref(`game${gamenum}/special/bombs/counts`).update({user:bombs+1});
+async function addBomb(user, gamenum) {
+  const ref = db.ref(`game${gamenum}/special/bombs/counts/${user}`);
+  await ref.transaction((current) => {
+    return (current || 0) + 1;
+  });
 }
 
 async function getActiveBombs(gamenum){
