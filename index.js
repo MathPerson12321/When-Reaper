@@ -235,7 +235,7 @@ async function addBomb(user){
   await db.ref(`game${gamenum}/special/bombs/counts`).set({user:bombs+1});
 }
 
-async function getActiveBombs(){
+async function getActiveBombs(gamenum){
   const snapshot = await db.ref(`game${gamenum}/special/bombs/activated`).once("value");
   return snapshot.val();
 }
@@ -243,7 +243,7 @@ async function getActiveBombs(){
 async function bombBonus(gamenum,user){
   let reaps = await db.ref(`game${gamenum}/special/bombs/reapspassed`).once("value");
   let rate = await db.ref(`game${gamenum}/special/rate`).once("value");
-  console.log(getActiveBombs())
+  console.log(getActiveBombs(gamenum))
   reaps = reaps.val();
   rate = rate.val();
   let bonus = rate + (rate*(Math.log(rate*reaps+1)));
