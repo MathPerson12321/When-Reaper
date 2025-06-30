@@ -237,7 +237,7 @@ async function addBomb(user){
 
 async function getActiveBombs(gamenum){
   const snapshot = await db.ref(`game${gamenum}/special/bombs/activated`).once("value");
-  return snapshot.val();
+  return snapshot.val().json();
 }
 
 async function bombBonus(gamenum,user){
