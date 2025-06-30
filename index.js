@@ -242,7 +242,7 @@ async function getActiveBombs(gamenum){
 
 async function bombBonus(gamenum,user){
   let reaps = await db.ref(`game${gamenum}/special/bombs/reapspassed`).once("value");
-  let rate = await db.ref(`game${gamenum}/special/rate`).once("value");
+  let rate = await db.ref(`game${gamenum}/special/bombs/rate`).once("value");
   console.log(await getActiveBombs(gamenum))
   reaps = reaps.val();
   rate = rate.val();
