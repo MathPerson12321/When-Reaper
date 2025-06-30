@@ -230,7 +230,7 @@ function isValid(text) {
 }
 
 async function addBomb(user,gamenum){
-  const snapshot = await db.ref(`game${gamenum}/special/bombs/counts/user`).once("value");
+  const snapshot = await db.ref(`game${gamenum}/special/bombs/counts/`+user).once("value");
   let bombs = snapshot.val() || 0
   await db.ref(`game${gamenum}/special/bombs/counts`).set({user:bombs+1});
 }
