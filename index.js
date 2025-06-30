@@ -229,7 +229,7 @@ function isValid(text) {
   return true;
 }
 
-async function addBomb(user){
+async function addBomb(user,gamenum){
   const snapshot = await db.ref(`game${gamenum}/special/bombs/counts/user`).once("value");
   let bombs = snapshot.val()
   await db.ref(`game${gamenum}/special/bombs/counts`).set({user:bombs+1});
@@ -243,15 +243,13 @@ async function getActiveBombs(gamenum){
 async function bombBonus(gamenum,user){
   let reaps = await db.ref(`game${gamenum}/special/bombs/reapspassed`).once("value");
   let rate = await db.ref(`game${gamenum}/special/bombs/rate`).once("value");
-  console.log(await getActiveBombs(gamenum))
   reaps = reaps.val();
   rate = rate.val();
   let bonus = rate + (rate*(Math.log(rate*reaps+1)));
-  console.log(bonus)
   const rand = Math.random() * 100;
   if(rand < bonus){
     await db.ref(`game${gamenum}/special/bombs/reapspassed`).set(0);
-    addBomb(user)
+    addBomb(user,gamenum)
     return true;
   }else{
     let reapspass = await db.ref(`game${gamenum}/special/bombs/reapspassed`).once("value");
