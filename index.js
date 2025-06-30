@@ -232,7 +232,7 @@ function isValid(text) {
 async function addBomb(user,gamenum){
   const snapshot = await db.ref(`game${gamenum}/special/bombs/counts/`+user).once("value");
   let bombs = snapshot.val() || 0
-  await db.ref(`game${gamenum}/special/bombs/counts`).set({user:bombs+1});
+  await db.ref(`game${gamenum}/special/bombs/counts`).update({user:bombs+1});
 }
 
 async function getActiveBombs(gamenum){
@@ -496,7 +496,7 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
       reapTimestamps.length > 0 ? Math.max(...reapTimestamps) : data.starttime;
 
     let timeGained = now - lastReapTimestamp;
-    if(bombBonus(gamenum,username)){
+    if(await bombBonus(gamenum,username)){
       console.log("BOMB")
     }
 
