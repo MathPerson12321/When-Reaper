@@ -595,6 +595,7 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
     let bonus = await bombBonus(gamenum,username);
     let endbonus = 1;
     let divider = 1;
+    let bomb = "";
     if(bonus[0]){
       console.log("BOMB FOR " + username)
     }
@@ -605,6 +606,7 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
       let texts = ["Bombed by " + oldest.user, oldest.user + " used a bomb for destruction", oldest.user + "'s bomb was activated"]
       text = texts[Math.floor(Math.random() * texts.length)];
       finaluser = oldest.user
+      bomb = oldest.user
 
       await db.ref(`game${gamenum}/special/bombs/activated/${oldest.key}`).remove();
       console.log("Removed bomb activated by", oldest.user);
@@ -656,7 +658,7 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
       bonustext: text,
       bombbonus: bonus[0],
       html: bonus[1] || "",
-      bombed: bomb
+      bombed: bomb //Was bombed - time goes to someone else (is blank if not bombed)
     };
     //Public one
     const reapEntry2 = {
