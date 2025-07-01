@@ -229,11 +229,33 @@ function isValid(text) {
   return true;
 }
 
+async function sendBonus(bonus){
+  const ref = await db.ref(`game${gamenum}/special/`+bonus+`/counts/${user}`);
+  return ref.val();
+}
+
+async function sendBonusHTML(bonus){
+  if(bonus == "bombs"){
+    let count = await sendBonus("bombs");
+    if(count > 0){
+      let html = "<div id='bomb-container'><p id='bomb-desc'>You have " + String(count) + 
+      " bombs ready for action. Remember to not let any of your enemies nor comrades know, as this is capable of ultimate destruction, "+
+      "something unheard of in the universe of When Reaper.</p>" + 
+      "<button id='bomb-use' type='submit' style='background: none; cursor: pointer;'>Click for 1% progress to destruction</button></div>"
+      let js = "document.getElementById('bomb-use').addEventListener('click',async() => "+
+      "await fetch(link + gamenum + '/usebomb', {method: 'POST',"+
+      "headers: {'Content-Type': 'application/json',Authorization: 'Bearer '+idToken,},body: JSON.stringify({user:user.uid}),});"
+      return [html,js];
+    }
+  }
+}
+
 async function addBomb(user, gamenum) {
   const ref = db.ref(`game${gamenum}/special/bombs/counts/${user}`);
   await ref.transaction((current) => {
     return (current || 0) + 1;
   });
+  return await sendBonusHTML("bombs")
 }
 
 async function getActiveBombs(gamenum){
@@ -250,12 +272,12 @@ async function bombBonus(gamenum,user){
   const rand = Math.random() * 100;
   if(rand < bonus){
     await db.ref(`game${gamenum}/special/bombs/reapspassed`).set(0);
-    addBomb(user,gamenum)
-    return true;
+    let content = await addBomb(user,gamenum)
+    return [true,content];
   }else{
     let reapspass = await db.ref(`game${gamenum}/special/bombs/reapspassed`).once("value");
     await db.ref(`game${gamenum}/special/bombs/reapspassed`).set(reapspass.val()+1);
-    return false;
+    return [false];
   }
 }
 
@@ -497,7 +519,8 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
       reapTimestamps.length > 0 ? Math.max(...reapTimestamps) : data.starttime;
 
     let timeGained = now - lastReapTimestamp;
-    if(await bombBonus(gamenum,username)){
+    let bonus = await bombBonus(gamenum,username);
+    if(bonus[0]){
       console.log("BOMB")
     }
 
@@ -548,6 +571,8 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
       bonus: endbonus,
       divided: divider,
       bonustext: text,
+      bombbonus: bonus[0],
+      html: bonus[1] || ""
     };
 
     reaps[reapNumber] = reapEntry;
@@ -583,7 +608,7 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
       leaderboard,
     });
   } catch (err) {
-    console.error("[REAPerror]", err);
+    console.error("[REAP error]", err);
     res.status(500).json({error:"Internal servererror" });
   } finally {
     reapingLocks.delete(userId);

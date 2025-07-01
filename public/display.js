@@ -141,6 +141,16 @@ function timetoseconds(milliseconds){
   return seconds + " seconds";
 }
 
+function inject(c){
+  let {h,j} = c
+  document.getElementById("recent-reaps").insertAdjacentHTML("afterend", h);
+  try{
+    new Function(j)();
+  }catch(err){
+    console.error("Error running injected JS:", err);
+  }
+}
+
 async function reaped() {
   const auth = getAuth(app);
   const user = auth.currentUser;
@@ -157,6 +167,7 @@ async function reaped() {
     body: JSON.stringify({ user: user.uid }),
   });
   const data = await response.json();
+  inject(data.reap.h)
   if(!response.ok){
     alert(data.error || "Error during reaping");
     return;
