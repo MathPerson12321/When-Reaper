@@ -125,7 +125,7 @@ async function isLoggedIn(id) {
 }
 
 export async function getIdToken(username) {
-  const usersRef = collection(db, "users");
+  const usersRef = firestore.collection("users").get();
   const q = query(usersRef, where("username", "==", username));
   const snapshot = await getDocs(q);
 
