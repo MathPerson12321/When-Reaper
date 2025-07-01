@@ -241,7 +241,7 @@ async function sendBonusHTML(bonus,gamenum,user){
       let html = "<div id='bomb-container'><p id='bomb-desc'>You have " + String(count) + 
       " bombs ready to deploy. Remember to not let any of your enemies nor comrades know about this weapon, as it is capable of ultimate destruction, "+
       "something unheard of in the universe of When Reaper.</p>" + 
-      "<button id='bomb-use' type='submit' style='background: none; cursor: pointer;'>Click for 1% progress to the end</button><br></div>"
+      "<button id='bomb-use' type='submit' style='cursor: pointer;'>Click for 1% progress to the end</button><br><br></div>"
       let js = "document.getElementById('bomb-use').addEventListener('click',async() => "+
       "await fetch(link + gamenum + '/usebomb', {method: 'POST',"+
       "headers: {'Content-Type': 'application/json',Authorization: 'Bearer '+idToken,},body: JSON.stringify({})}));"
