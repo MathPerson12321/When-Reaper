@@ -67,14 +67,13 @@ function makeLeaderboard(){
   const thead = document.createElement("thead");
   const trow = document.createElement("tr");
   table.style.tableLayout = "fixed";
-  table.style.width = "100%";
-  const colwidths = ["50px", "140px", "80px", "60px", "80px"];
+  const colminwidths = ["1ch", "5ch", "3ch", "1ch", "2ch"];
   const headers = ["Rank","Username","Time","Reaps","Average"];
   for (let i=0;i<headers.length;i++){
     const th = document.createElement("th");
     th.textContent = headers[i];
-    th.style.width = colwidths[i];
-    th.style.padding = "4px 8px";
+    th.style.padding = "4px 4px";
+    th.style.width = colminwidths[i];
     trow.appendChild(th);
   }
   thead.appendChild(trow);
@@ -91,23 +90,24 @@ function makeLeaderboard(){
     tr.className = "lb-entry";
     tr.id = "rank-" + (i + 1);
 
-    tr.appendChild(createCell(i + 1));
-    tr.appendChild(createCell(username));
-    tr.appendChild(createCell(stats.time.toFixed(3)));
-    tr.appendChild(createCell(stats.reapcount));
-    tr.appendChild(createCell((stats.time / stats.reapcount).toFixed(3)));
+    tr.appendChild(createCell(i+1,0));
+    tr.appendChild(createCell(username,1));
+    tr.appendChild(createCell(stats.time.toFixed(3),2));
+    tr.appendChild(createCell(stats.reapcount,3));
+    tr.appendChild(createCell((stats.time/stats.reapcount).toFixed(3),4));
 
     tbody.appendChild(tr);
   }
   table.appendChild(tbody);
   parent.appendChild(table);
 
-  function createCell(text){
+  function createCell(text,colIndex){
     const td = document.createElement("td");
-    td.style.padding = "4px 8px";
+    td.style.padding = "4px 4px";
     td.style.whiteSpace = "nowrap"; //Prevent line breaks
     td.style.textAlign = "left";
     td.textContent = text;
+    td.style.minWidth = colminwidths[colIndex];
     return td;
   }
 }
@@ -141,6 +141,17 @@ function timetoseconds(milliseconds){
   return seconds + " seconds";
 }
 
+function inject(c){
+  let h = c[0]
+  let j = c[1]
+  document.getElementById("recentreaps").insertAdjacentHTML("afterend", h);
+  try{
+    new Function(j)();
+  }catch(err){
+    console.error("Error running injected JS:", err);
+  }
+}
+
 async function reaped() {
   const auth = getAuth(app);
   const user = auth.currentUser;
@@ -157,6 +168,9 @@ async function reaped() {
     body: JSON.stringify({ user: user.uid }),
   });
   const data = await response.json();
+  if(data.reap.h){
+    inject(data.reap.h)
+  }
   if(!response.ok){
     alert(data.error || "Error during reaping");
     return;
@@ -208,7 +222,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const user = await checkAuthAndRedirect();
   userId = user.uid;
   username = await fetchJSON("/"+userId,"getusername")
-
+  const bd = await fetchJSON("/"+userId+"/gb", gamenum);
+  inject(bd);
   await updateAll();
 
   // Initialize WebSocket
@@ -220,11 +235,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       reaps[index] = msgData.reap;
       const {user,timegain} = msgData.reap;
 
-      if(!leaderboard[user]){
+      /*if(!leaderboard[user]){
         leaderboard[user] = {time:0, reapcount:0};
       }
       leaderboard[user].time += timegain;
-      leaderboard[user].reapcount += 1;
+      leaderboard[user].reapcount += 1;*/
 
       userlastreaps[user] = msgData.reap.timestamp;
       makeLeaderboard();

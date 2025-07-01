@@ -235,11 +235,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       reaps[index] = msgData.reap;
       const {user,timegain} = msgData.reap;
 
-      if(!leaderboard[user]){
+      /*if(!leaderboard[user]){
         leaderboard[user] = {time:0, reapcount:0};
       }
       leaderboard[user].time += timegain;
-      leaderboard[user].reapcount += 1;
+      leaderboard[user].reapcount += 1;*/
 
       userlastreaps[user] = msgData.reap.timestamp;
       makeLeaderboard();
