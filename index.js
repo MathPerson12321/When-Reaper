@@ -229,14 +229,14 @@ function isValid(text) {
   return true;
 }
 
-async function sendBonus(bonus,gamenum){
+async function sendBonus(bonus,gamenum,user){
   const ref = await db.ref(`game${gamenum}/special/`+bonus+`/counts/${user}`);
   return ref.val();
 }
 
-async function sendBonusHTML(bonus,gamenum){
+async function sendBonusHTML(bonus,gamenum,user){
   if(bonus == "bombs"){
-    let count = await sendBonus("bombs",gamenum);
+    let count = await sendBonus("bombs",gamenum,user);
     if(count > 0){
       let html = "<div id='bomb-container'><p id='bomb-desc'>You have " + String(count) + 
       " bombs ready for action. Remember to not let any of your enemies nor comrades know, as this is capable of ultimate destruction, "+
@@ -255,7 +255,7 @@ async function addBomb(user, gamenum) {
   await ref.transaction((current) => {
     return (current || 0) + 1;
   });
-  return await sendBonusHTML("bombs",gamenum)
+  return await sendBonusHTML("bombs",gamenum,user)
 }
 
 async function getActiveBombs(gamenum){
