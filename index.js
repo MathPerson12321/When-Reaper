@@ -594,6 +594,7 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
     let finaluser = username
     let bonus = await bombBonus(gamenum,username);
     let endbonus = 1;
+    let divider = 1;
     if(bonus[0]){
       console.log("BOMB FOR " + username)
     }
@@ -614,7 +615,6 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
       const divisors = Object.entries(rawdividers);
 
       // Multiplier
-      let divider = 1;
       let counter = 2;
 
       for (const key in bonuses) {
