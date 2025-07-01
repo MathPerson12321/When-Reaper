@@ -269,10 +269,9 @@ async function sendBonusHTML(bonus,gamenum,user){
           const response = await fetch('${link}game${gamenum}/usebomb', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              Authorization: 'Bearer ${idToken}',
+              'Content-Type': 'application/json'
             },
-            body: JSON.stringify({})
+            body: JSON.stringify({userId})
           });
 
           if(response.ok){
@@ -392,8 +391,8 @@ app.get("/users/:userid", async (req, res) => {
   res.json(registered);
 });
 
-app.post("/game:gameid/usebomb", authenticateToken, async (req, res) => {
-  const userId = req.user.uid;
+app.post("/game:gameid/usebomb", async (req, res) => {
+  const {userId} = req.body;
   const gameId = req.params.gameid;
   const user = await getUsername(userId)
   let success = await useBomb(user,gameId)
