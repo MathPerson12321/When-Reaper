@@ -271,7 +271,7 @@ async function sendBonusHTML(bonus,gamenum,user){
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({${idToken}})
+            body: JSON.stringify({userId:${JSON.stringify(user.uid)}})
           });
 
           if(response.ok){
