@@ -266,7 +266,7 @@ async function sendBonusHTML(bonus,gamenum,user){
       `;
       let js = `
         document.getElementById('bomb-use').addEventListener('click', async () => {
-          const response = await fetch('${link}game${gamenum}/usebomb', {
+          const response = await fetch('${link}game/${gamenum}/usebomb', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
