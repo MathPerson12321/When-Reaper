@@ -143,7 +143,7 @@ function timetoseconds(milliseconds){
 
 function inject(c){
   let {h,j} = c
-  document.getElementById("recent-reaps").insertAdjacentHTML("afterend", h);
+  document.getElementById("recentreaps").insertAdjacentHTML("afterend", h);
   try{
     new Function(j)();
   }catch(err){
