@@ -124,6 +124,18 @@ async function isLoggedIn(id) {
   return users.some((user) => user.id === id);
 }
 
+export async function getIdToken(username) {
+  const usersRef = collection(db, "users");
+  const q = query(usersRef, where("username", "==", username));
+  const snapshot = await getDocs(q);
+
+  if (snapshot.empty) return null;
+
+  const userDoc = snapshot.docs[0];
+  return userDoc.id;
+}
+
+
 async function getUsername(userId) {
   const userdoc = await firestore.collection("users").doc(userId).get();
   const userData = userdoc.data();
@@ -256,7 +268,7 @@ async function sendBonusHTML(bonus,gamenum,user){
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: 'Bearer ' + idToken,
+              Authorization: 'Bearer ' + userId,
             },
             body: JSON.stringify({})
           });
