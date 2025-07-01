@@ -247,6 +247,7 @@ async function sendBonus(bonus,gamenum,user){
 }
 
 async function sendBonusHTML(bonus,gamenum,user){
+  let idToken = await getIdToken(user)
   if(bonus == "bombs"){
     let count = await sendBonus("bombs",gamenum,user);
     if(count > 0){
@@ -268,7 +269,7 @@ async function sendBonusHTML(bonus,gamenum,user){
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: 'Bearer ' + userId,
+              Authorization: 'Bearer ${idToken}',
             },
             body: JSON.stringify({})
           });
@@ -304,6 +305,9 @@ async function useBomb(user,gamenum){
     await ref.transaction((current) => {
       return (current || 0) - 1;
     });
+    return true;
+  }else{
+    return false;
   }
 }
 
@@ -391,7 +395,12 @@ app.post("/game:gameid/usebomb", authenticateToken, async (req, res) => {
   const userId = req.user.uid;
   const gameId = req.params.gameid;
   const user = await getUsername(userId)
-  await useBomb(user,gameId)
+  let success = await useBomb(user,gameId)
+  if(success){
+    res.status(200).json({message:"Bomb used"});
+  }else{
+    res.status(400).json({message: "No bombs left"});
+  }
 });
 
 app.post("/loadchatmessages", authenticateToken, async (req, res) => {
