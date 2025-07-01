@@ -167,6 +167,7 @@ async function reaped() {
     body: JSON.stringify({ user: user.uid }),
   });
   const data = await response.json();
+  console.log(data)
   if(data.reap.h){
     inject(data.reap.h)
   }
