@@ -229,14 +229,14 @@ function isValid(text) {
   return true;
 }
 
-async function sendBonus(bonus){
+async function sendBonus(bonus,gamenum){
   const ref = await db.ref(`game${gamenum}/special/`+bonus+`/counts/${user}`);
   return ref.val();
 }
 
-async function sendBonusHTML(bonus){
+async function sendBonusHTML(bonus,gamenum){
   if(bonus == "bombs"){
-    let count = await sendBonus("bombs");
+    let count = await sendBonus("bombs",gamenum);
     if(count > 0){
       let html = "<div id='bomb-container'><p id='bomb-desc'>You have " + String(count) + 
       " bombs ready for action. Remember to not let any of your enemies nor comrades know, as this is capable of ultimate destruction, "+
@@ -255,7 +255,7 @@ async function addBomb(user, gamenum) {
   await ref.transaction((current) => {
     return (current || 0) + 1;
   });
-  return await sendBonusHTML("bombs")
+  return await sendBonusHTML("bombs",gamenum)
 }
 
 async function getActiveBombs(gamenum){
@@ -574,6 +574,15 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
       bombbonus: bonus[0],
       html: bonus[1] || ""
     };
+    //Public one
+    const reapEntry2 = {
+      user: username,
+      timestamp: now,
+      timegain: timeGainedSec,
+      bt: text, //Bonus text
+      bv: bonus[0], //Bomb bonus
+      h: bonus[1] || "" //Sent html
+    };
 
     reaps[reapNumber] = reapEntry;
     lastUserReaps[username] = now;
@@ -603,7 +612,7 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
     res.json({
       success: true,
       message:"Reap successful",
-      reap: reapEntry,
+      reap: reapEntry2,
       cooldown: data.cooldown,
       leaderboard,
     });
