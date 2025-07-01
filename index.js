@@ -230,7 +230,7 @@ function isValid(text) {
 }
 
 async function sendBonus(bonus,gamenum,user){
-  const ref = await db.ref(`game${gamenum}/special/`+bonus+`/counts/${user}`);
+  const ref = await db.ref(`game${gamenum}/special/`+bonus+`/counts/${user}`).once("value");
   return ref.val();
 }
 
