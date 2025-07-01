@@ -238,13 +238,41 @@ async function sendBonusHTML(bonus,gamenum,user){
   if(bonus == "bombs"){
     let count = await sendBonus("bombs",gamenum,user);
     if(count > 0){
-      let html = "<div id='bomb-container'><p id='bomb-desc'>You have " + String(count) + 
-      " bombs ready to deploy. Remember to not let any of your enemies nor comrades know about this weapon, as it is capable of ultimate destruction, "+
-      "something unheard of in the universe of When Reaper.</p>" + 
-      "<button id='bomb-use' type='submit' style='cursor: pointer;'>Click for 1% progress to the end</button><br><br></div>"
-      let js = "document.getElementById('bomb-use').addEventListener('click',async() => "+
-      "await fetch(link + gamenum + '/usebomb', {method: 'POST',"+
-      "headers: {'Content-Type': 'application/json',Authorization: 'Bearer '+idToken,},body: JSON.stringify({})}));"
+      let html = `
+        <div id='bomb-container'>
+          <p id='bomb-desc'>
+            You have <span id='bomb-count'>${count}</span> bombs ready to deploy.
+            Remember to not let any of your enemies nor comrades know about this weapon, 
+            as it is capable of ultimate destruction, something unheard of in the universe of When Reaper.
+          </p>
+          <button id='bomb-use' type='submit' style='cursor: pointer;'>
+            Click for 1% progress to the end
+          </button><br><br>
+        </div>
+      `;
+      let js = `
+        document.getElementById('bomb-use').addEventListener('click', async () => {
+          const response = await fetch(link + gamenum + '/usebomb', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + idToken,
+            },
+            body: JSON.stringify({})
+          });
+
+          if(response.ok){
+            const el = document.getElementById('bomb-count');
+            let val = parseInt(el.textContent);
+            if (!isNaN(val) && val > 0) {
+              el.textContent = val-1;
+              if(val-1 <= 0) {
+                document.getElementById('bomb-container').remove();
+              }
+            }
+          }
+      });
+      `;
       return [html,js];
     }
   }
@@ -565,6 +593,7 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
     let text = "";
     let finaluser = username
     let bonus = await bombBonus(gamenum,username);
+    let endbonus = 1;
     if(bonus[0]){
       console.log("BOMB FOR " + username)
     }
@@ -585,7 +614,6 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
       const divisors = Object.entries(rawdividers);
 
       // Multiplier
-      let endbonus = 1;
       let divider = 1;
       let counter = 2;
 
