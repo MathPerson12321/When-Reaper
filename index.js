@@ -239,14 +239,31 @@ async function sendBonusHTML(bonus,gamenum,user){
     let count = await sendBonus("bombs",gamenum,user);
     if(count > 0){
       let html = "<div id='bomb-container'><p id='bomb-desc'>You have " + String(count) + 
-      " bombs ready for action. Remember to not let any of your enemies nor comrades know, as this is capable of ultimate destruction, "+
+      " bombs ready to deploy. Remember to not let any of your enemies nor comrades know about this weapon, as it is capable of ultimate destruction, "+
       "something unheard of in the universe of When Reaper.</p>" + 
-      "<button id='bomb-use' type='submit' style='background: none; cursor: pointer;'>Click for 1% progress to destruction</button><br></div>"
+      "<button id='bomb-use' type='submit' style='background: none; cursor: pointer;'>Click for 1% progress to the end</button><br></div>"
       let js = "document.getElementById('bomb-use').addEventListener('click',async() => "+
       "await fetch(link + gamenum + '/usebomb', {method: 'POST',"+
-      "headers: {'Content-Type': 'application/json',Authorization: 'Bearer '+idToken,},body: JSON.stringify({user:user.uid}),}));"
+      "headers: {'Content-Type': 'application/json',Authorization: 'Bearer '+idToken,},body: JSON.stringify({})}));"
       return [html,js];
     }
+  }
+}
+
+async function useBomb(user,gamenum){
+  let ref = db.ref(`game${gamenum}/special/bombs/counts/${user}`);
+  let val = await ref.once("value")
+  let count = val.val()
+  if(count > 0){
+    let actref = db.ref(`game${gamenum}/special/bombs/activated`);
+    await actref.push({
+      user,
+      timestamp: Date.now()
+    });
+
+    await ref.transaction((current) => {
+      return (current || 0) - 1;
+    });
   }
 }
 
@@ -258,9 +275,19 @@ async function addBomb(user, gamenum) {
   return await sendBonusHTML("bombs",gamenum,user)
 }
 
-async function getActiveBombs(gamenum){
-  const snapshot = await db.ref(`game${gamenum}/special/bombs/activated`).once("value");
-  return snapshot.val();
+async function getActiveBombs(gamenum) {
+  const snapshot = await db
+    .ref(`game${gamenum}/special/bombs/activated`)
+    .orderByChild("timestamp")
+    .once("value");
+
+  const data = snapshot.val();
+  if (!data) return [];
+
+  return Object.entries(data).map(([key, value]) => ({
+    key,
+    ...value
+  }));
 }
 
 async function bombBonus(gamenum,user){
@@ -318,6 +345,13 @@ app.get("/users/:userid", async (req, res) => {
   const id = req.params.userid;
   const registered = await isLoggedIn(id);
   res.json(registered);
+});
+
+app.post("/game:gameid/usebomb", authenticateToken, async (req, res) => {
+  const userId = req.user.uid;
+  const gameId = req.params.gameid;
+  const user = await getUsername(userId)
+  await useBomb(user,gameId)
 });
 
 app.post("/loadchatmessages", authenticateToken, async (req, res) => {
@@ -480,6 +514,14 @@ app.get("/getusername/:userid", async (req, res) => {
   }
 });
 
+app.get("/game:gameid/:userid/gb", async (req, res) => {
+  const userId = req.params.userid;
+  let username = await getUsername(userId);
+  const gamenum = req.params.gameid;
+  let bombs = await sendBonusHTML("bombs",gamenum,username)
+  return res.json(bombs)
+});
+
 // Reap route - secured with token auth
 app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
   const gamenum = req.params.gameid;
@@ -519,46 +561,59 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
       reapTimestamps.length > 0 ? Math.max(...reapTimestamps) : data.starttime;
 
     let timeGained = now - lastReapTimestamp;
+
+    let text = "";
+    let finaluser = username
     let bonus = await bombBonus(gamenum,username);
     if(bonus[0]){
-      console.log("BOMB")
+      console.log("BOMB FOR " + username)
     }
+    let bombs = await getActiveBombs(gamenum)
+    const oldest = bombs[0];
+    if(oldest){
+      //The reap has been bombed.
+      let texts = ["Bombed by " + oldest.user, oldest.user + " used a bomb for destruction", oldest.user + "'s bomb was activated"]
+      text = texts[Math.floor(Math.random() * texts.length)];
+      finaluser = oldest.user
 
-    const rawbonuses = await getBonuses();
-    const rawdividers = await getDivisors();
-    const bonuses = Object.entries(rawbonuses).sort((a, b) => b[1] - a[1]);
-    const divisors = Object.entries(rawdividers);
+      await db.ref(`game${gamenum}/special/bombs/activated/${oldest.key}`).remove();
+      console.log("Removed bomb activated by", oldest.user);
+    }else{
+      const rawbonuses = await getBonuses();
+      const rawdividers = await getDivisors();
+      const bonuses = Object.entries(rawbonuses).sort((a, b) => b[1] - a[1]);
+      const divisors = Object.entries(rawdividers);
 
-    // Multiplier
-    let endbonus = 1;
-    let divider = 1;
-    let counter = 2;
-    let text ="";
+      // Multiplier
+      let endbonus = 1;
+      let divider = 1;
+      let counter = 2;
 
-    for (const key in bonuses) {
-      const val = bonuses[key][1] * 10;
-      const rand = Math.floor(Math.random() * 1000) + 1;
-      if (rand <= val) {
-        endbonus = counter;
-        text = bonuses[key][0];
-      }
-      counter++;
-    }
-    timeGained *= endbonus;
-
-    if (endbonus == 1) {
-      // Divide
-      for (const key in divisors) {
-        const divide = divisors[key][1][0];
-        const val = divisors[key][1][1] * 10;
+      for (const key in bonuses) {
+        const val = bonuses[key][1] * 10;
         const rand = Math.floor(Math.random() * 1000) + 1;
         if (rand <= val) {
-          divider = divide;
-          text = divisors[key][0];
+          endbonus = counter;
+          text = bonuses[key][0];
         }
         counter++;
       }
-      timeGained /= divider;
+      timeGained *= endbonus;
+
+      if (endbonus == 1) {
+        // Divide
+        for (const key in divisors) {
+          const divide = divisors[key][1][0];
+          const val = divisors[key][1][1] * 10;
+          const rand = Math.floor(Math.random() * 1000) + 1;
+          if (rand <= val) {
+            divider = divide;
+            text = divisors[key][0];
+          }
+          counter++;
+        }
+        timeGained /= divider;
+      }
     }
 
     const timeGainedSec = Math.round((timeGained / 1000) * 1000) / 1000;
@@ -572,34 +627,35 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
       divided: divider,
       bonustext: text,
       bombbonus: bonus[0],
-      html: bonus[1] || ""
+      html: bonus[1] || "",
+      bombed: bomb
     };
     //Public one
     const reapEntry2 = {
       user: username,
       timestamp: now,
       timegain: timeGainedSec,
-      bt: text, //Bonus text
-      bv: bonus[0], //Bomb bonus
+      bt: text, //Bonus text, can include being bombed
+      bv: bonus[0], //Bomb bonus gotten?
       h: bonus[1] || "" //Sent html
     };
 
     reaps[reapNumber] = reapEntry;
     lastUserReaps[username] = now;
 
-    if (!leaderboard[username]) {
-      leaderboard[username] = { time: 0, reapcount: 0 };
+    if (!leaderboard[finaluser]) {
+      leaderboard[finaluser] = {time: 0, reapcount: 0};
     }
 
-    leaderboard[username].time = Math.round(
-      (leaderboard[username].time + timeGainedSec) * 1000
+    leaderboard[finaluser].time = Math.round(
+      (leaderboard[finaluser].time + timeGainedSec) * 1000
     ) / 1000;
     leaderboard[username].reapcount += 1;
 
-    if (leaderboard[username].time * 1000 >= data.endtime) {
+    if (leaderboard[finaluser].time * 1000 >= data.endtime) {
       data.gamerunning = false;
       data.gameendtime = now;
-      data.winner = username;
+      data.winner = finaluser;
       await saveData(gamenum, data);
     }
 
