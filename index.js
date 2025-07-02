@@ -290,6 +290,7 @@ async function sendBonusHTML(bonus,gamenum,user){
       `;
       return [html,js];
     }
+    return [];
   }
 }
 
