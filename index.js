@@ -258,6 +258,8 @@ async function sendBonusHTML(bonus,gamenum,user){
             You have <span id='bomb-count'>${count}</span> bombs ready to deploy.
             Remember to not let any of your enemies nor comrades know about this weapon, 
             as it is capable of ultimate destruction, something unheard of in the universe of When Reaper.
+
+            This weapon will allow you to steal the next persons time, when activated.
           </p>
           <button id='bomb-use' type='submit' style='cursor: pointer;'>
             Click for 1% progress to the end
