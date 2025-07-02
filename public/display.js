@@ -168,7 +168,7 @@ async function reaped() {
     body: JSON.stringify({ user: user.uid }),
   });
   const data = await response.json();
-  if(data.reap.h){
+  if(data.reap.h && !document.getElementById("bomb-container")){
     inject(data.reap.h)
   }
   if(!response.ok){
