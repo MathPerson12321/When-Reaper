@@ -223,7 +223,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   userId = user.uid;
   username = await fetchJSON("/"+userId,"getusername")
   const bd = await fetchJSON("/"+userId+"/gb", gamenum);
-  inject(bd);
+  if(Array.isArray(bd) && bd[0] && bd[1]){
+    inject(bd);
+  }
   await updateAll();
 
   // Initialize WebSocket
