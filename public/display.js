@@ -180,13 +180,7 @@ function displayTime(ms){
 function getTimeFromUnix(ms){
   let time = ms - data.starttime;
   if (reaps && Object.keys(reaps).length > 0){
-    const keys = Object.keys(reaps).map((k) => parseInt(k));
-    const max = Math.max(...keys);
-    let lastreap = reaps[max]
-    if(!lastreap.timestamp){
-      let [num,lastreap2] = reaps[max];
-      lastreap = lastreap2
-    }
+    const [_, lastreap] = reaps[0];
     time = ms - lastreap.timestamp;
   }
   return time;
