@@ -7,13 +7,14 @@ let userlastreaps = null;
 let reaps = null;
 let leaderboard = null;
 let username = null;
+let user = null;
 
 const link = "https://reaperclone.onrender.com/";
 const gamenum = "game1";
 
-async function fetchJSON(path,path2){
+async function fetchJSON(path,path2,user){
   const idToken = await user.getIdToken();
-  await fetch(link+path2+path, {
+  let res = await fetch(link+path2+path, {
     headers: {
       Authorization: `Bearer ${idToken}`,
     },
@@ -151,11 +152,6 @@ function inject(c){
 }
 
 async function reaped() {
-  const auth = getAuth(app);
-  const user = auth.currentUser;
-  if (!user){
-    return;
-  }
   const idToken = await user.getIdToken();
   const response = await fetch(link + gamenum + "/reap", {
     method: "POST",
@@ -206,11 +202,11 @@ function calcTime(){
 }
 
 async function updateAll(){
-  data = await fetchJSON("/gamedata",gamenum);
-  reaps = await fetchJSON("/reaps",gamenum);
+  data = await fetchJSON("/gamedata",gamenum,user);
+  reaps = await fetchJSON("/reaps",gamenum,user);
   reaps = Object.entries(reaps).filter(([_, val]) => val !== null);
-  userlastreaps = await fetchJSON("/lastuserreap",gamenum);
-  leaderboard = await fetchJSON("/leaderboard",gamenum);
+  userlastreaps = await fetchJSON("/lastuserreap",gamenum,user);
+  leaderboard = await fetchJSON("/leaderboard",gamenum,user);
 
   makeLeaderboard();
   mostrecentreapdisplay();
@@ -245,11 +241,10 @@ document.addEventListener("click", async (e) => {
 
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const user = await checkAuthAndRedirect();
-  const res = await fetchJSON("me","")
-  const json = await res.json();
+  user = await checkAuthAndRedirect();
+  const json = await fetchJSON("me","",user)
   username = json.username;
-  const bd = await fetchJSON("/gb",gamenum);
+  const bd = await fetchJSON("/gb",gamenum,user);
   if(bd[0]){
     inject(bd);
   }
