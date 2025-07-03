@@ -39,7 +39,7 @@ function mostrecentreapdisplay(){
   const arr = Object.entries(reaps);
   let count = 1;
 
-  for (let i = arr.length - 1; i >= 0 && count <= 10; i--){
+  for(let i = 0; i < reaps.length && count <= 10; i++){
     let [reapnum,details] = arr[i];
     if(!details.timestamp){
       let [num,details2] = details
