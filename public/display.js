@@ -147,8 +147,7 @@ function timetoseconds(milliseconds){
 }
 
 function inject(c){
-  let h = c[0]
-  document.getElementById("recentreaps").insertAdjacentHTML("afterend", h);
+  document.getElementById("recentreaps").insertAdjacentHTML("afterend", c);
 }
 
 async function reaped() {
@@ -207,7 +206,7 @@ async function updateAll(){
 }
 
 document.addEventListener("click", async (e) => {
-  if (e.target && e.target.id === "bomb-use") {
+  if (e.target && e.target.id == "bomb-use") {
     const idToken = await user.getIdToken();
     const response = await fetch(link + gamenum + "/usebomb", {
       method: "POST",
@@ -239,7 +238,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const json = await fetchJSON("me","",user)
   username = json.username;
   const bd = await fetchJSON("/gb",gamenum,user);
-  if(bd[0]){
+  if(bd){
     inject(bd);
   }
   await updateAll();

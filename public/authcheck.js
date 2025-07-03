@@ -16,14 +16,13 @@ export async function checkAuthAndRedirect() {
         console.log(user)
         if (!user) {
           console.log("No user detected - redirecting to login");
-          unsubscribe();  // stop listening
+          unsubscribe(); 
           window.location.href = link + "login";
           return;
         }
   
         try {
           const registered = await fetchJSON("users/" + user.uid);
-  
           if (registered) {
             unsubscribe();
             resolve(user);
