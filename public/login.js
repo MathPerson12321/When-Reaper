@@ -62,9 +62,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       console.log("Registration result:", result);
-      if (!result.success) {
+      if (!(result.allowed == "Good!")) {
         document.getElementById("error").innerHTML = result.message;
-      } else {
+      }else{
         window.location.replace(link);
       }
     } catch (error) {

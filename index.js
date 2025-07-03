@@ -137,7 +137,7 @@ export async function getIdToken(username) {
 }
 
 
-async function getUsername(userId) {
+async function getUsername(userId){
   const userdoc = await firestore.collection("users").doc(userId).get();
   const userData = userdoc.data();
   if (!userData) throw new Error("User not found");
