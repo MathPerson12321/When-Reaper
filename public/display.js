@@ -6,14 +6,18 @@ let data = null;
 let userlastreaps = null;
 let reaps = null;
 let leaderboard = null;
-let userId = null;
 let username = null;
 
 const link = "https://reaperclone.onrender.com/";
 const gamenum = "game1";
 
 async function fetchJSON(path,path2){
-  const res = await fetch(link+path2+path);
+  const idToken = await user.getIdToken();
+  await fetch(link+path2+path, {
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
+  });
   return await res.json();
 }
 
@@ -143,13 +147,7 @@ function timetoseconds(milliseconds){
 
 function inject(c){
   let h = c[0]
-  let j = c[1]
   document.getElementById("recentreaps").insertAdjacentHTML("afterend", h);
-  try{
-    new Function(j)();
-  }catch(err){
-    console.error("Error running injected JS:", err);
-  }
 }
 
 async function reaped() {
@@ -165,7 +163,7 @@ async function reaped() {
       "Content-Type": "application/json",
       Authorization: `Bearer ${idToken}`,
     },
-    body: JSON.stringify({ user: user.uid }),
+    body: JSON.stringify({}), 
   });
   const data = await response.json();
   if(data.reap.h && !document.getElementById("bomb-container")){
@@ -220,10 +218,11 @@ async function updateAll(){
 
 document.addEventListener("DOMContentLoaded", async () => {
   const user = await checkAuthAndRedirect();
-  userId = user.uid;
-  username = await fetchJSON("/"+userId,"getusername")
-  const bd = await fetchJSON("/"+userId+"/gb", gamenum);
-  if(Array.isArray(bd) && bd[0] && bd[1]){
+  const res = await fetchJSON("me","")
+  const json = await res.json();
+  username = json.username;
+  const bd = await fetchJSON("/gb",gamenum);
+  if(bd[0]){
     inject(bd);
   }
   await updateAll();

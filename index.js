@@ -124,7 +124,7 @@ async function isLoggedIn(id) {
   return users.some((user) => user.id === id);
 }
 
-export async function getIdToken(username) {
+async function getIdToken(username) {
   const snapshot = await firestore
     .collection("users")
     .where("username", "==", username)
@@ -266,31 +266,9 @@ async function sendBonusHTML(bonus,gamenum,user){
           </button><br><br>
         </div>
       `;
-      let js = `
-        document.getElementById('bomb-use').addEventListener('click', async () => {
-          const response = await fetch('${link}game/${gamenum}/usebomb', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({userId:${JSON.stringify(idToken)}})
-          });
-
-          if(response.ok){
-            const el = document.getElementById('bomb-count');
-            let val = parseInt(el.textContent);
-            if (!isNaN(val) && val > 0) {
-              el.textContent = val-1;
-              if(val-1 <= 0) {
-                document.getElementById('bomb-container').remove();
-              }
-            }
-          }
-      });
-      `;
-      return [html,js];
+      return html;
     }
-    return [];
+    return "";
   }
 }
 
@@ -536,9 +514,20 @@ app.get("/game:gameid/leaderboard", async (req, res) => {
 
 app.get("/game:gameid/reaps", async (req, res) => {
   const gamenum = req.params.gameid;
-  try {
+  try{
     const reaps = await loadReaps(gamenum);
-    res.json(reaps);
+    const filtered = Object.values(reaps)
+      .filter((r) => r && r.timestamp)
+      .sort((a, b) => b.timestamp - a.timestamp) // Newest first
+      .slice(0, 10) // Top 10
+      .map((r) => ({
+        user: r.user,
+        timestamp: r.timestamp,
+        timegain: r.timegain,
+        bonustext: r.bonustext || null,
+      }));
+
+    res.json(filtered);
   } catch (err) {
     console.error(err);
     res.status(500).json({error:"Internal server error" });
@@ -556,18 +545,18 @@ app.get("/game:gameid/lastuserreap", async (req, res) => {
   }
 });
 
-app.get("/getusername/:userid", async (req, res) => {
-  const userId = req.params.userid;
+app.get("/me", authenticateToken, async (req, res) => {
+  const userId = req.user.uid;
   try {
-    let username = await getUsername(userId);
-    return res.json(username);
+    const username = await getUsername(userId);
+    return res.json({ username });
   } catch {
-    return res.status(404).json({error:"User not found" });
+    return res.status(404).json({ error: "User not found" });
   }
 });
 
-app.get("/game:gameid/:userid/gb", async (req, res) => {
-  const userId = req.params.userid;
+app.get("/game:gameid/gb", authenticateToken, async (req, res) => {
+  const userId = req.user.uid;
   let username = await getUsername(userId);
   const gamenum = req.params.gameid;
   let bombs = await sendBonusHTML("bombs",gamenum,username)
@@ -717,7 +706,7 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
     await saveLastUserReaps(gamenum, lastUserReaps);
     await saveLeaderboard(gamenum, leaderboard);
 
-    broadcast({ type:"reap", reap: reapEntry });
+    broadcast({ type:"reap", reap: reapEntry2 });
 
     res.json({
       success: true,
