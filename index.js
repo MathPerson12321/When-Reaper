@@ -700,6 +700,10 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
       data.gameendtime = now;
       data.winner = finaluser;
       await saveData(gamenum, data);
+      broadcast({
+        type: "win",
+        winner: finaluser,
+      });
     }
 
     await saveReaps(gamenum, reaps);

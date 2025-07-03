@@ -146,8 +146,8 @@ function timetoseconds(milliseconds){
   return seconds + " seconds";
 }
 
-function inject(c){
-  document.getElementById("recentreaps").insertAdjacentHTML("afterend", c);
+function inject(c,q,t){
+  document.getElementById(q).insertAdjacentHTML(t,c);
 }
 
 async function reaped() {
@@ -162,7 +162,7 @@ async function reaped() {
   });
   const data = await response.json();
   if(data.reap.h && !document.getElementById("bomb-container")){
-    inject(data.reap.h)
+    inject(data.reap.h,"recentreaps","afterend")
   }
   if(!response.ok){
     alert(data.error || "Error during reaping");
@@ -199,9 +199,7 @@ async function updateAll(){
   reaps = await fetchJSON("/reaps",gamenum,user);
   reaps = Object.entries(reaps).filter(([_, val]) => val !== null);
   userlastreaps = await fetchJSON("/lastuserreap",gamenum,user);
-  leaderboard = await fetchJSON("/leaderboard",gamenum,user);
 
-  makeLeaderboard();
   mostrecentreapdisplay();
 }
 
@@ -239,28 +237,27 @@ document.addEventListener("DOMContentLoaded", async () => {
   username = json.username;
   const bd = await fetchJSON("/gb",gamenum,user);
   if(bd){
-    inject(bd);
+    inject(bd,"recentreaps","afterend");
   }
   await updateAll();
+  leaderboard = await fetchJSON("/leaderboard",gamenum,user);
+  makeLeaderboard();
 
   // Initialize WebSocket
   const socket = new WebSocket("wss://reaperclone.onrender.com?game="+gamenum+"/");
   socket.addEventListener("message", async (event) => {
     const msgData = JSON.parse(event.data);
-    if (msgData.type === "reap"){
+    if(msgData.type == "reap"){
       const index = Object.keys(reaps).length + 1;
       reaps[index] = msgData.reap;
       const {user,timegain} = msgData.reap;
-
-      /*if(!leaderboard[user]){
-        leaderboard[user] = {time:0, reapcount:0};
-      }
-      leaderboard[user].time += timegain;
-      leaderboard[user].reapcount += 1;*/
-
       userlastreaps[user] = msgData.reap.timestamp;
-      makeLeaderboard();
       mostrecentreapdisplay();
+    }
+
+    if(msgData.type == "win"){
+      data.winner = msgData.winner;
+      data.gamerunning = false;
     }
   });
 
@@ -279,13 +276,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     reaped();
   });
 
-  setInterval(async function () {
+  setInterval(async function() {
     const now = Date.now();
     document.getElementById("desc").innerHTML = data.description;
-    if (data.starttime > now){
+    if(data.winner != "" && !data.gamerunning){
+      const finalUser = data.winner;
+      inject(`<div id="winscreen"><h2>${finalUser} has won game ${gamenum} "of When Reaper. See you next time (in an alternate universe)!</h2></div>`,"desc","afterend");
+      document.getElementById("game").remove();
+      document.getElementById("wait").remove();
+    }
+    if(data.starttime > now){
       const res = "Game starts in " + timetoseconds(data.starttime-now);
       document.getElementById("timeleft").innerHTML = res;
-    } else {
+    }else{
       document.getElementById("wait").style.display = "none";
       document.getElementById("game").style.display = "block";
       displayTime(now);
@@ -293,7 +296,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("reapstuff").style.display = "none";
         document.getElementById("cooldown").style.display = "block";
         displayCooldown(now);
-      } else {
+      }else{
         document.getElementById("reapstuff").style.display = "block";
         document.getElementById("cooldown").style.display = "none";
       }
