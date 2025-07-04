@@ -282,9 +282,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("desc").innerHTML = data.description;
     if(data.winner != "" && !data.gamerunning){
       const finalUser = data.winner;
-      inject(`<div id="winscreen"><h2>${finalUser} has won game ${gamenum} "of When Reaper. See you next time (in an alternate universe)!</h2></div>`,"desc","afterend");
-      document.getElementById("game").remove();
-      document.getElementById("wait").remove();
+      if(!document.getElementById("winscreen")){
+        inject(`<div id="winscreen"><h2>${finalUser} has won Game ${gamenum} of When Reaper.</h2><p style="font-size:16px">See you next time (in an alternate universe)!</p></div>`,"desc","afterend");
+        document.getElementById("game").remove();
+        document.getElementById("wait").remove();
+      }
     }
     if(data.starttime > now){
       const res = "Game starts in " + timetoseconds(data.starttime-now);
