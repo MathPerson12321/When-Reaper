@@ -736,8 +736,8 @@ app.get("/:gameid/gamedata", async (req, res) => {
       return res.status(400).json({error:"No game data found." });
     }
 
-    if (currentTime >= data.starttime) {
-      if (data.gamerunning === false) {
+    if(currentTime >= data.starttime){
+      if(data.gamerunning == false && data.winner == ""){
         data.gamerunning = true;
         await saveData(gamenum, data);
       }
