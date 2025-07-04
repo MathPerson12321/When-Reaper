@@ -372,8 +372,8 @@ app.get("/users/:userid", async (req, res) => {
   res.json(registered);
 });
 
-app.post("/game:gameid/usebomb", async (req, res) => {
-  const {userId} = req.body;
+app.post("/game:gameid/usebomb", authenticateToken, async (req, res) => {
+  const {userId} = req.user.uid;
   const gameId = req.params.gameid;
   const user = await getUsername(userId)
   let success = await useBomb(user,gameId)

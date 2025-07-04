@@ -211,7 +211,8 @@ document.addEventListener("click", async (e) => {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`,
-      }
+      },
+      body: JSON.stringify({})
     });
 
     if(response.ok){
