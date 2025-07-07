@@ -64,7 +64,7 @@ function mostrecentreapdisplay(){
 }
 
 function makeLeaderboard(){
-  if(data.starttime > now){
+  if(data.starttime > Date.now()){
     return;
   }
   parent.innerHTML = "";
