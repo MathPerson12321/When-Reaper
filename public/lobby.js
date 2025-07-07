@@ -36,7 +36,7 @@ function makeHtml(element){
         const current = document.getElementById("current");
         current.appendChild(gamediv);
         document.getElementById("defaultcur").style.display = "none";
-    }else{
+    }else if(element.winner == ""){
         const upcoming = document.getElementById("upcoming");
         upcoming.appendChild(gamediv);
         document.getElementById("default").style.display = "none";
