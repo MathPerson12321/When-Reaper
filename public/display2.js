@@ -106,7 +106,7 @@ function makeLeaderboard(){
     tbody.appendChild(tr);
   }
   table.appendChild(tbody);
-  inject(table,"game","afterend");
+  inject(table.outerHTML,"game","afterend");
 
   function createCell(text,colIndex){
     const td = document.createElement("td");
