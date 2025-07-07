@@ -48,7 +48,7 @@ function makeHtml(element){
 
         const linkfame = document.createElement("a");
         linkfame.href = link+element.name;
-        let upperstr = element.name.charAt(0).toUpperCase() + element.name.slice(1);
+        let upperstr = element.name.charAt(0).toUpperCase() + element.name.substring(1,4) + " " + element.name.slice(5);
         linkfame.textContent = upperstr + " - " + element.winner;
         linkfame.id = "linkto"+element.name;
         linkfame.href = link+element.name;
