@@ -161,12 +161,12 @@ async function getGames() {
         gamedata = gameSnap.val();
       }
       const starttime = gamedata.starttime;
-      let running = false;
-      if (now >= starttime) {
-        running = true;
-      }
       const description = gamedata.description;
       const winner = gamedata.winner;
+      let running = false;
+      if (now >= starttime && winner == "") {
+        running = true;
+      }
 
       return {
         name,
@@ -568,23 +568,23 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
   const gamenum = req.params.gameid;
   const userId = req.user.uid;
 
-  if (reapingLocks.has(userId)) {
+  if(reapingLocks.has(userId)){
     return res.status(429).json({error:"Reap already in progress" });
   }
 
   reapingLocks.add(userId);
 
-  try {
+  try{
     const username = await getUsername(userId);
     const data = await loadData(gamenum);
     const now = Date.now();
 
     if (!data || !data.gamerunning || now < data.starttime) {
-      return res.status(400).json({error:"Game is not running" });
+      return res.status(400).json({error:"Game is not running"});
     }
 
     if (data.winner !=="") {
-      return res.status(400).json({error:"Game has ended" });
+      return res.status(400).json({error:"Game has ended"});
     }
 
     const lastUserReaps = await loadLastUserReaps(gamenum);
@@ -719,17 +719,17 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
       cooldown: data.cooldown,
       leaderboard,
     });
-  } catch (err) {
+  }catch (err){
     console.error("[REAP error]", err);
     res.status(500).json({error:"Internal servererror" });
-  } finally {
+  }finally{
     reapingLocks.delete(userId);
   }
 });
 
 app.get("/:gameid/gamedata", async (req, res) => {
   const gamenum = req.params.gameid.replace("game","");
-  try {
+  try{
     const currentTime = Date.now();
     let data = await loadData(gamenum);
     if (!data) {
@@ -743,7 +743,7 @@ app.get("/:gameid/gamedata", async (req, res) => {
       }
     }
     return res.status(200).json(data);
-  } catch (err) {
+  }catch (err){
     console.error(err);
     res.status(500).json({error:"Internal servererror" });
   }

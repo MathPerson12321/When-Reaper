@@ -6,14 +6,19 @@ let data = null;
 let userlastreaps = null;
 let reaps = null;
 let leaderboard = null;
-let userId = null;
 let username = null;
+let user = null;
 
 const link = "https://reaperclone.onrender.com/";
 const gamenum = "game2";
 
-async function fetchJSON(path,path2){
-  const res = await fetch(link+path2+path);
+async function fetchJSON(path,path2,user){
+  const idToken = await user.getIdToken();
+  let res = await fetch(link+path2+path, {
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
+  });
   return await res.json();
 }
 
@@ -34,7 +39,7 @@ function mostrecentreapdisplay(){
   const arr = Object.entries(reaps);
   let count = 1;
 
-  for (let i = arr.length - 1; i >= 0 && count <= 10; i--){
+  for(let i = 0; i < reaps.length && count <= 10; i++){
     let [reapnum,details] = arr[i];
     if(!details.timestamp){
       let [num,details2] = details
@@ -59,7 +64,9 @@ function mostrecentreapdisplay(){
 }
 
 function makeLeaderboard(){
-  const parent = document.getElementById("leaderboard");
+  if(data.starttime > now){
+    return;
+  }
   parent.innerHTML = "";
   const table = document.createElement("table");
   table.id = "lbtable";
@@ -99,7 +106,7 @@ function makeLeaderboard(){
     tbody.appendChild(tr);
   }
   table.appendChild(tbody);
-  parent.appendChild(table);
+  inject(table,"game","afterend");
 
   function createCell(text,colIndex){
     const td = document.createElement("td");
@@ -141,23 +148,11 @@ function timetoseconds(milliseconds){
   return seconds + " seconds";
 }
 
-function inject(c){
-  let h = c[0]
-  let j = c[1]
-  document.getElementById("recentreaps").insertAdjacentHTML("afterend", h);
-  try{
-    new Function(j)();
-  }catch(err){
-    console.error("Error running injected JS:", err);
-  }
+function inject(c,q,t){
+  document.getElementById(q).insertAdjacentHTML(t,c);
 }
 
 async function reaped() {
-  const auth = getAuth(app);
-  const user = auth.currentUser;
-  if (!user){
-    return;
-  }
   const idToken = await user.getIdToken();
   const response = await fetch(link + gamenum + "/reap", {
     method: "POST",
@@ -165,11 +160,11 @@ async function reaped() {
       "Content-Type": "application/json",
       Authorization: `Bearer ${idToken}`,
     },
-    body: JSON.stringify({ user: user.uid }),
+    body: JSON.stringify({}), 
   });
   const data = await response.json();
-  if(data.reap.h){
-    inject(data.reap.h)
+  if(data.reap.h && !document.getElementById("bomb-container")){
+    inject(data.reap.h,"recentreaps","afterend")
   }
   if(!response.ok){
     alert(data.error || "Error during reaping");
@@ -186,13 +181,7 @@ function displayTime(ms){
 function getTimeFromUnix(ms){
   let time = ms - data.starttime;
   if (reaps && Object.keys(reaps).length > 0){
-    const keys = Object.keys(reaps).map((k) => parseInt(k));
-    const max = Math.max(...keys);
-    let lastreap = reaps[max]
-    if(!lastreap.timestamp){
-      let [num,lastreap2] = reaps[max];
-      lastreap = lastreap2
-    }
+    const [_, lastreap] = reaps[0];
     time = ms - lastreap.timestamp;
   }
   return time;
@@ -208,42 +197,70 @@ function calcTime(){
 }
 
 async function updateAll(){
-  data = await fetchJSON("/gamedata",gamenum);
-  reaps = await fetchJSON("/reaps",gamenum);
+  data = await fetchJSON("/gamedata",gamenum,user);
+  reaps = await fetchJSON("/reaps",gamenum,user);
   reaps = Object.entries(reaps).filter(([_, val]) => val !== null);
-  userlastreaps = await fetchJSON("/lastuserreap",gamenum);
-  leaderboard = await fetchJSON("/leaderboard",gamenum);
+  userlastreaps = await fetchJSON("/lastuserreap",gamenum,user);
 
-  makeLeaderboard();
   mostrecentreapdisplay();
 }
 
+document.addEventListener("click", async (e) => {
+  if (e.target && e.target.id == "bomb-use") {
+    const idToken = await user.getIdToken();
+    const response = await fetch(link + gamenum + "/usebomb", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({})
+    });
+
+    if(response.ok){
+      const el = document.getElementById("bomb-count");
+      let val = parseInt(el.textContent);
+      if (!isNaN(val) && val > 0) {
+        el.textContent = val - 1;
+        if (val - 1 <= 0) {
+          document.getElementById("bomb-container").remove();
+        }
+      }
+    }else{
+      const err = await response.json();
+      alert(err.message || "Failed to use bomb.");
+    }
+  }
+});
+
+
 document.addEventListener("DOMContentLoaded", async () => {
-  const user = await checkAuthAndRedirect();
-  userId = user.uid;
-  username = await fetchJSON("/"+userId,"getusername")
-  const bd = await fetchJSON("/"+userId+"/gb", gamenum);
-  inject(bd);
+  user = await checkAuthAndRedirect();
+  const json = await fetchJSON("me","",user)
+  username = json.username;
+  const bd = await fetchJSON("/gb",gamenum,user);
+  if(bd){
+    inject(bd,"recentreaps","afterend");
+  }
   await updateAll();
+  leaderboard = await fetchJSON("/leaderboard",gamenum,user);
+  makeLeaderboard();
 
   // Initialize WebSocket
   const socket = new WebSocket("wss://reaperclone.onrender.com?game="+gamenum+"/");
   socket.addEventListener("message", async (event) => {
     const msgData = JSON.parse(event.data);
-    if (msgData.type === "reap"){
+    if(msgData.type == "reap"){
       const index = Object.keys(reaps).length + 1;
       reaps[index] = msgData.reap;
       const {user,timegain} = msgData.reap;
-
-      /*if(!leaderboard[user]){
-        leaderboard[user] = {time:0, reapcount:0};
-      }
-      leaderboard[user].time += timegain;
-      leaderboard[user].reapcount += 1;*/
-
       userlastreaps[user] = msgData.reap.timestamp;
-      makeLeaderboard();
       mostrecentreapdisplay();
+    }
+
+    if(msgData.type == "win"){
+      data.winner = msgData.winner;
+      data.gamerunning = false;
     }
   });
 
@@ -262,13 +279,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     reaped();
   });
 
-  setInterval(async function () {
+  setInterval(async function() {
     const now = Date.now();
     document.getElementById("desc").innerHTML = data.description;
-    if (data.starttime > now){
+    if(data.winner != "" && !data.gamerunning){
+      const finalUser = data.winner;
+      if(!document.getElementById("winscreen")){
+        inject(`<div id="winscreen"><h2>${finalUser} has won Game ${gamenum.substring(4)} of When Reaper.</h2><p style="font-size:16px">See you next time (in an alternate universe)!</p></div>`,"desc","afterend");
+        document.getElementById("game").remove();
+        document.getElementById("wait").remove();
+      }
+    }
+    if(data.starttime > now){
       const res = "Game starts in " + timetoseconds(data.starttime-now);
       document.getElementById("timeleft").innerHTML = res;
-    } else {
+    }else{
       document.getElementById("wait").style.display = "none";
       document.getElementById("game").style.display = "block";
       displayTime(now);
@@ -276,7 +301,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("reapstuff").style.display = "none";
         document.getElementById("cooldown").style.display = "block";
         displayCooldown(now);
-      } else {
+      }else{
         document.getElementById("reapstuff").style.display = "block";
         document.getElementById("cooldown").style.display = "none";
       }

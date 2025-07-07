@@ -64,7 +64,9 @@ function mostrecentreapdisplay(){
 }
 
 function makeLeaderboard(){
-  const parent = document.getElementById("leaderboard");
+  if(data.starttime > now){
+    return;
+  }
   parent.innerHTML = "";
   const table = document.createElement("table");
   table.id = "lbtable";
@@ -104,7 +106,7 @@ function makeLeaderboard(){
     tbody.appendChild(tr);
   }
   table.appendChild(tbody);
-  parent.appendChild(table);
+  inject(table,"game","afterend");
 
   function createCell(text,colIndex){
     const td = document.createElement("td");
@@ -283,7 +285,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if(data.winner != "" && !data.gamerunning){
       const finalUser = data.winner;
       if(!document.getElementById("winscreen")){
-        inject(`<div id="winscreen"><h2>${finalUser} has won Game ${gamenum} of When Reaper.</h2><p style="font-size:16px">See you next time (in an alternate universe)!</p></div>`,"desc","afterend");
+        inject(`<div id="winscreen"><h2>${finalUser} has won Game ${gamenum.substring(4)} of When Reaper.</h2><p style="font-size:16px">See you next time (in an alternate universe)!</p></div>`,"desc","afterend");
         document.getElementById("game").remove();
         document.getElementById("wait").remove();
       }
