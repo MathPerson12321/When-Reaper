@@ -268,8 +268,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const banner = document.createElement("p");
     banner.innerHTML = "<b>Connection lost. Please refresh the page.</b>";
     document.body.appendChild(banner);
-
-    document.getElementById("reapbutton").disabled = true;
+    if(!(data.winner != "" && !data.gamerunning)){
+      document.getElementById("reapbutton").disabled = true;
+    }
   });
 
   document.getElementById("reapbutton").addEventListener("click", (e) => {
