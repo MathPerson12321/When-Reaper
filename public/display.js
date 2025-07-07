@@ -289,21 +289,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("game").remove();
         document.getElementById("wait").remove();
       }
-    }
-    if(data.starttime > now){
-      const res = "Game starts in " + timetoseconds(data.starttime-now);
-      document.getElementById("timeleft").innerHTML = res;
     }else{
-      document.getElementById("wait").style.display = "none";
-      document.getElementById("game").style.display = "block";
-      displayTime(now);
-      if(now - (userlastreaps[username] || 0) < data.cooldown){
-        document.getElementById("reapstuff").style.display = "none";
-        document.getElementById("cooldown").style.display = "block";
-        displayCooldown(now);
+      if(data.starttime > now){
+        const res = "Game starts in " + timetoseconds(data.starttime-now);
+        document.getElementById("timeleft").innerHTML = res;
       }else{
-        document.getElementById("reapstuff").style.display = "block";
-        document.getElementById("cooldown").style.display = "none";
+        document.getElementById("wait").style.display = "none";
+        document.getElementById("game").style.display = "block";
+        displayTime(now);
+        if(now - (userlastreaps[username] || 0) < data.cooldown){
+          document.getElementById("reapstuff").style.display = "none";
+          document.getElementById("cooldown").style.display = "block";
+          displayCooldown(now);
+        }else{
+          document.getElementById("reapstuff").style.display = "block";
+          document.getElementById("cooldown").style.display = "none";
+        }
       }
     }
   }, 1000);
