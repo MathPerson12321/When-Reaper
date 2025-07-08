@@ -609,6 +609,7 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
     let endbonus = 1;
     let divider = 1;
     let bomb = "";
+    let sniped = false;
     if(bonus[0]){
       console.log("BOMB FOR " + username)
     }
@@ -659,7 +660,18 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
       }
     }
 
+
     const timeGainedSec = Math.round((timeGained / 1000) * 1000) / 1000;
+    if(timeGainedSec < 10){
+      sniped = true
+    }
+    if(sniped){
+      if(text == ""){
+        text = "Imagine being sniped"
+      }else{
+        text += ", also imagine being sniped"
+      }
+    }
 
     const reapNumber = Object.keys(reaps).length + 1;
     const reapEntry = {

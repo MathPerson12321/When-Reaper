@@ -12,25 +12,23 @@ async function fetchJSON(path){
 
 export async function checkAuthAndRedirect() {
     return new Promise((resolve) => {
-      const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        console.log(user)
-        if (!user) {
-          console.log("No user detected - redirecting to login");
+      const unsubscribe = onAuthStateChanged(auth, async(user) => {
+        if(!user){
           unsubscribe(); 
           window.location.href = link + "login";
           return;
         }
   
-        try {
+        try{
           const registered = await fetchJSON("users/" + user.uid);
-          if (registered) {
+          if(registered){
             unsubscribe();
             resolve(user);
-          } else {
+          }else{
             unsubscribe();
             window.location.href = link + "login";
           }
-        } catch (e) {
+        }catch(e){
           console.error("Error fetching registration status:", e);
           unsubscribe();
           window.location.href = link + "login";
@@ -42,21 +40,16 @@ export async function checkAuthAndRedirect() {
 
 export async function redirectFromLogin() {
     return new Promise((resolve) => {
-        onAuthStateChanged(auth, async (user) => {
-            console.log("redirectFromLogin() detected user:", user);
-            if (!user) {
-                console.log("No user, staying on login");
+        onAuthStateChanged(auth, async(user) => {
+            if(!user){
                 resolve(null);
                 return;
             }
             let registered = await fetchJSON("users/" + user.uid);
-            console.log("Fetched user registered:", registered);
-            if (registered) {
-                console.log("User is registered, redirecting to main page");
-                window.location.href = link; // redirect to main page
-            } else {
-                console.log("User is unregistered, staying on login page");
-                resolve(user); // let page show register form
+            if(registered){
+                window.location.href = link;
+            }else{
+                resolve(user);
             }
         });
     });
