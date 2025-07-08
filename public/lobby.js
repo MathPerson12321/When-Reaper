@@ -1,9 +1,3 @@
-import {checkAuthAndRedirect} from "./authcheck.js";
-import app from './firebase.js';
-
-const user = await checkAuthAndRedirect();
-console.log("Logged in user:", user);
-
 const link = "https://reaperclone.onrender.com/";
 
 async function fetchJSON(path){
@@ -63,10 +57,8 @@ function makeHtml(element){
 
 async function getGames(){
     let gamedata = await fetchJSON("games")
-    console.log(gamedata)
     for(let i=0;i<gamedata.length;i++){
         let element = gamedata[i];
-        console.log(element.name + ", " + element.running + " description - " + element.description);
         makeHtml(element);
     }
 }
