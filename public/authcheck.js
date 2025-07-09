@@ -5,47 +5,11 @@ let link = "https://reaperclone.onrender.com/"
 
 const auth = getAuth(app);
 
-let cachuser = null;
-let userpromise = null;
+const registeredcache = new Map();
 
 async function fetchJSON(path){
     const res = await fetch(link+path);
     return await res.json();
-}
-
-//Some parts of this (mostly promises) were done by AI
-async function fetchUserInfo(){
-  if(cachuser){
-    return user;
-  }
-  if(userpromise){
-    return userpromise;
-  }
-
-  const user = auth.currentUser;
-  if (!user) return null;
-
-  userpromise = (async () => {
-    try{
-      const token = await user.getIdToken();
-      const res = await fetch(link + "me", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-      });
-      const data = await res.json();
-
-      cachuser = {username: data.username};
-      return cachuser;
-    }catch (err){
-      console.error("[fetchUserInfo error]", err);
-      throw err;
-    }finally{
-      userpromise = null;
-    }
-  })();
-
-  return userpromise;
 }
 
 export async function checkAuthAndRedirect() {
@@ -54,23 +18,29 @@ export async function checkAuthAndRedirect() {
         if(!user){
           unsubscribe(); 
           window.location.href = link + "login";
+          resolve(null);
           return;
         }
   
         try{
-          const info = await fetchUserInfo();
-          const registered = await fetchJSON("users/" + user.uid);
+          let registered = registeredcache.get(user.uid);
+          if(registered == undefined){
+            registered = await fetchJSON("users/" + user.uid);
+            registeredcache.set(user.uid,registered);
+          }
           if(registered){
             unsubscribe();
-            resolve(info);
+            resolve(user);
           }else{
             unsubscribe();
             window.location.href = link + "login";
+            resolve(null);
           }
         }catch(e){
           console.error("Error fetching registration status:", e);
           unsubscribe();
           window.location.href = link + "login";
+          resolve(null);
         }
       });
     });
@@ -84,12 +54,15 @@ export async function redirectFromLogin() {
                 resolve(null);
                 return;
             }
-            const info = await fetchUserInfo();
-            let registered = await fetchJSON("users/" + user.uid);
+            let registered = registeredcache.get(user.uid);
+            if(registered == undefined){
+              registered = await fetchJSON("users/" + user.uid);
+              registeredcache.set(user.uid,registered);
+            }
             if(registered){
                 window.location.href = link;
             }else{
-                resolve(info);
+                resolve(user);
             }
         });
     });
