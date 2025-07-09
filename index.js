@@ -10,15 +10,6 @@ import {fileURLToPath} from "url";
 
 import rateLimit from "express-rate-limit";
 
-const limiter = rateLimit({
-  windowMs: 10 * 1000,
-  max: 15,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-app.use(limiter);
-
 const chatCooldowns = new Map(); // userId => timestamp
 
 // Setup __dirname for ES modules
@@ -47,6 +38,15 @@ const wss = new WebSocketServer({ server });
 
 app.use(cors());
 app.use(express.json());
+
+const limiter = rateLimit({
+  windowMs: 10 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(limiter);
 
 const PORT = process.env.PORT || 10000;
 
@@ -729,7 +729,7 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
     await saveLastUserReaps(gamenum, lastUserReaps);
     await saveLeaderboard(gamenum, leaderboard);
 
-    broadcast({ type:"reap", reap: reapEntry2 });
+    broadcast({type:"reap", reap: reapEntry2});
 
     res.json({
       success: true,
