@@ -3,7 +3,7 @@ import {getAuth} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.j
 import app from './firebase.js';
 const link = "https://reaperclone.onrender.com/";
 const auth = getAuth(app);
-const currentUser = auth.currentUser;
+let cansend = true
 
 function getChat(){
     let curlink = window.location.href;
@@ -64,6 +64,10 @@ async function loadMessages(limit,user){
 }
 
 async function sendMessage(user){
+    if(!cansend){
+        alert("Please wait 5 seconds before sending another message.");
+        return;
+    }
     const message = document.getElementById("chatmsgcontent").value.trim();
     const elapsed = Date.now() - start;
     if(message.length == 0){
@@ -78,6 +82,7 @@ async function sendMessage(user){
         if (!user) {
             return;
         }
+        cansend = false;
         const idToken = await user.getIdToken();
         const data = {
             message,
@@ -100,6 +105,9 @@ async function sendMessage(user){
             document.getElementById("chatmsgcontent").value = "";
             typing = false;
             keycount = 0;
+            setTimeout(() => {
+                cansend = true;
+            }, 5000);
         }
     }catch(err){
         console.error("Error sending message:", err);
