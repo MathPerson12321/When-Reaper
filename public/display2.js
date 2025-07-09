@@ -36,7 +36,7 @@ function mostrecentreapdisplay(){
     return;
   }
 
-  const arr = Object.entries(reaps);
+  const arr = reaps;
   let count = 1;
 
   for(let i = 0; i < arr.length && count <= 10; i++){
@@ -170,8 +170,7 @@ async function reaped() {
     alert(data.error || "Error during reaping");
     return;
   }else{
-    const index = Object.keys(reaps).length + 1;
-    reaps[index] = data.reap;
+    reaps.unshift([Date.now(),data.reap]);
     const user = data.reap.user;
     userlastreaps[user] = data.reap.timestamp;
     displayCooldown(Date.now());
@@ -209,9 +208,10 @@ async function pageLoad(){
     fetchJSON("/leaderboard",gamenum,user)
   ]);
   const entries = Object.entries(reaps);
-  reaps = entries.filter(function([key,value]){
-    return value !== null;
-  });
+  reaps = entries
+  .filter(([key, value]) => value !== null)
+  .map(([key, value]) => [parseInt(key), value])
+  .sort((a, b) => b[1].timestamp - a[1].timestamp);
   makeLeaderboard();
   mostrecentreapdisplay();
 }
@@ -260,8 +260,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   socket.addEventListener("message", async (event) => {
     const msgData = JSON.parse(event.data);
     if(msgData.type == "reap"){
-      const index = Object.keys(reaps).length + 1;
-      reaps[index] = msgData.reap;
+      reaps.unshift([Date.now(),msgData.reap]);
       const user = msgData.reap.user;
       userlastreaps[user] = msgData.reap.timestamp;
       mostrecentreapdisplay();
