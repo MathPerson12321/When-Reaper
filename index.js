@@ -701,7 +701,7 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
       user: username,
       timestamp: now,
       timegain: timeGainedSec,
-      bt: text, //Bonus text, can include being bombed
+      bonustext: text, //Bonus text, can include being bombed
       bv: bonus[0], //Bomb bonus gotten?
       h: bonus[1] || "" //Sent html
     };
