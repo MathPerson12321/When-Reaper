@@ -8,9 +8,16 @@ import fs from "fs";
 import {readFile} from "fs/promises";
 import {fileURLToPath} from "url";
 
-import leoProfanity from 'leo-profanity';
+import rateLimit from "express-rate-limit";
 
-leoProfanity.loadDictionary();
+const limiter = rateLimit({
+  windowMs: 10 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(limiter);
 
 const chatCooldowns = new Map(); // userId => timestamp
 

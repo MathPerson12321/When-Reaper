@@ -169,9 +169,14 @@ async function reaped() {
   if(!response.ok){
     alert(data.error || "Error during reaping");
     return;
+  }else{
+    const index = Object.keys(reaps).length + 1;
+    reaps[index] = msgData.reap;
+    const user = msgData.reap.user;
+    userlastreaps[user] = msgData.reap.timestamp;
+    displayCooldown(Date.now());
+    mostrecentreapdisplay();
   }
-  displayCooldown(Date.now());
-  await updateAll();
 }
 
 function displayTime(ms){
@@ -196,12 +201,18 @@ function calcTime(){
   return data.starttime - Date.now();
 }
 
-async function updateAll(){
-  data = await fetchJSON("/gamedata",gamenum,user);
-  reaps = await fetchJSON("/reaps",gamenum,user);
-  reaps = Object.entries(reaps).filter(([_, val]) => val !== null);
-  userlastreaps = await fetchJSON("/lastuserreap",gamenum,user);
-
+async function pageLoad(){
+  [data,reaps,userlastreaps,leaderboard] = await Promise.all([
+    fetchJSON("/gamedata", gamenum, user),
+    fetchJSON("/reaps", gamenum, user),
+    fetchJSON("/lastuserreap", gamenum, user),
+    fetchJSON("/leaderboard",gamenum,user)
+  ]);
+  const entries = Object.entries(reaps);
+  reaps = entries.filter(function([key,value]){
+    return value !== null;
+  });
+  makeLeaderboard();
   mostrecentreapdisplay();
 }
 
@@ -242,9 +253,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if(bd){
     inject(bd,"recentreaps","afterend");
   }
-  await updateAll();
-  leaderboard = await fetchJSON("/leaderboard",gamenum,user);
-  makeLeaderboard();
+  await pageLoad();
 
   // Initialize WebSocket
   const socket = new WebSocket("wss://reaperclone.onrender.com?game="+gamenum+"/");
@@ -253,7 +262,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if(msgData.type == "reap"){
       const index = Object.keys(reaps).length + 1;
       reaps[index] = msgData.reap;
-      const {user,timegain} = msgData.reap;
+      const user = msgData.reap.user;
       userlastreaps[user] = msgData.reap.timestamp;
       mostrecentreapdisplay();
     }
@@ -280,9 +289,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     reaped();
   });
 
+  document.getElementById("desc").innerHTML = data.description;
+
   setInterval(async function() {
     const now = Date.now();
-    document.getElementById("desc").innerHTML = data.description;
     if(data.winner != "" && !data.gamerunning){
       const finalUser = data.winner;
       if(!document.getElementById("winscreen")){
