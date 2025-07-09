@@ -178,7 +178,7 @@ function displayTime(ms){
 function getTimeFromUnix(ms){
   let time = ms - data.starttime;
   if (reaps && reaps.length > 0){
-    const [_, lastreap] = reaps[0];
+    const lastreap = reaps[0];
     time = ms - lastreap.timestamp;
   }
   return time;
