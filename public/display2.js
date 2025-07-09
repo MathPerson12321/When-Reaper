@@ -32,19 +32,13 @@ async function writeJSON(path,path2,data){
 }
 
 function mostrecentreapdisplay(){
-  if (!reaps || Object.keys(reaps).length == 0){
+  if (!reaps || reaps.length == 0){
     return;
   }
 
-  const arr = reaps;
   let count = 1;
-
-  for(let i = 0; i < arr.length && count <= 10; i++){
-    let [reapnum,details] = arr[i];
-    if(!details.timestamp){
-      let [num,details2] = details
-      details = details2
-    } 
+  for(let i = 0; i < reaps.length && count <= 10; i++){
+    const details = reaps[i];
     const date = new Date(details.timestamp);
     const options = { month: "short", day: "2-digit" };
     const datePart = date.toLocaleDateString("en-US", options);
@@ -170,7 +164,6 @@ async function reaped() {
     alert(data.error || "Error during reaping");
     return;
   }else{
-    reaps.unshift([Date.now(),data.reap]);
     const user = data.reap.user;
     userlastreaps[user] = data.reap.timestamp;
     displayCooldown(Date.now());
@@ -184,7 +177,7 @@ function displayTime(ms){
 
 function getTimeFromUnix(ms){
   let time = ms - data.starttime;
-  if (reaps && Object.keys(reaps).length > 0){
+  if (reaps && reaps.length > 0){
     const [_, lastreap] = reaps[0];
     time = ms - lastreap.timestamp;
   }
@@ -207,11 +200,7 @@ async function pageLoad(){
     fetchJSON("/lastuserreap", gamenum, user),
     fetchJSON("/leaderboard",gamenum,user)
   ]);
-  const entries = Object.entries(reaps);
-  reaps = entries
-  .filter(([key, value]) => value !== null)
-  .map(([key, value]) => [parseInt(key), value])
-  .sort((a, b) => b[1].timestamp - a[1].timestamp);
+  reaps = Object.values(reaps).sort((a,b) => b.timestamp-a.timestamp);
   makeLeaderboard();
   mostrecentreapdisplay();
 }
@@ -260,7 +249,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   socket.addEventListener("message", async (event) => {
     const msgData = JSON.parse(event.data);
     if(msgData.type == "reap"){
-      reaps.unshift([Date.now(),msgData.reap]);
+      reaps.unshift(msgData.reap);
       const user = msgData.reap.user;
       userlastreaps[user] = msgData.reap.timestamp;
       mostrecentreapdisplay();
