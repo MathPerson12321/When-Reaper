@@ -39,14 +39,14 @@ const wss = new WebSocketServer({ server });
 app.use(cors());
 app.use(express.json());
 
-const limiter = rateLimit({
+/*const limiter = rateLimit({
   windowMs: 10 * 1000,
   max: 30,
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-app.use(limiter);
+app.use(limiter);*/
 
 const PORT = process.env.PORT || 10000;
 
