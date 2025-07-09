@@ -11,6 +11,8 @@ import {fileURLToPath} from "url";
 import rateLimit from "express-rate-limit";
 
 const chatCooldowns = new Map(); // userId => timestamp
+const usernameCache = new Map();
+
 
 // Setup __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -79,6 +81,17 @@ function broadcast(obj) {
   });
 }
 
+async function getUsernameCached(userId){
+  if(usernameCache.has(userId)){
+    return usernameCache.get(userId);
+  }
+  const userdoc = await firestore.collection("users").doc(userId).get();
+  const userData = userdoc.data();
+  if (!userData) throw new Error("User not found");
+  usernameCache.set(userId, userData.username);
+  return userData.username;
+}
+
 async function getBonuses() {
   let data = await firestore.collection("bonuses").doc("multipliers").get();
   return data.data();
@@ -141,14 +154,6 @@ async function getIdToken(username) {
 
   const userDoc = snapshot.docs[0];
   return userDoc.id;
-}
-
-
-async function getUsername(userId){
-  const userdoc = await firestore.collection("users").doc(userId).get();
-  const userData = userdoc.data();
-  if (!userData) throw new Error("User not found");
-  return userData.username;
 }
 
 async function getGames() {
@@ -255,7 +260,6 @@ async function sendBonus(bonus,gamenum,user){
 }
 
 async function sendBonusHTML(bonus,gamenum,user){
-  let idToken = await getIdToken(user)
   if(bonus == "bombs"){
     let count = await sendBonus("bombs",gamenum,user);
     if(count > 0){
@@ -382,7 +386,7 @@ app.get("/users/:userid", async (req, res) => {
 app.post("/game:gameid/usebomb", authenticateToken, async (req, res) => {
   const userId = req.user.uid;
   const gameId = req.params.gameid;
-  const user = await getUsername(userId)
+  const user = await getUsernameCached(userId)
   let success = await useBomb(user,gameId)
   if(success){
     res.status(200).json({message:"Bomb used"});
@@ -439,7 +443,7 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
   if (message.length > keycount || elapsed < 50) {
     return res.json({ msg:"Bro tried to bot chat messages on a useless game and still failed. How bad are you at ts gang 🥀" });
   }
-  const username = await getUsername(userId);
+  const username = await getUsernameCached(userId);
   let chat = getChat(curlink)
   const chatDocRef = firestore.collection("gamechat").doc(chat +"chat").collection("messages");
   for (const char of message){
@@ -555,7 +559,7 @@ app.get("/game:gameid/lastuserreap", async (req, res) => {
 app.get("/me", authenticateToken, async (req, res) => {
   const userId = req.user.uid;
   try {
-    const username = await getUsername(userId);
+    const username = await getUsernameCached(userId);
     return res.json({ username });
   } catch {
     return res.status(404).json({ error: "User not found" });
@@ -564,7 +568,7 @@ app.get("/me", authenticateToken, async (req, res) => {
 
 app.get("/game:gameid/gb", authenticateToken, async (req, res) => {
   const userId = req.user.uid;
-  let username = await getUsername(userId);
+  let username = await getUsernameCached(userId);
   const gamenum = req.params.gameid;
   let bombs = await sendBonusHTML("bombs",gamenum,username)
   return res.json(bombs)
@@ -582,7 +586,7 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
   reapingLocks.add(userId);
 
   try{
-    const username = await getUsername(userId);
+    const username = await getUsernameCached(userId);
     const data = await loadData(gamenum);
     const now = Date.now();
 

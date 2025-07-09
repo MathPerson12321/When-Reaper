@@ -154,10 +154,6 @@ function inject(c,q,t){
 
 async function reaped() {
   const idToken = await user.getIdToken();
-  let cooldownleft = data.cooldown + (userlastreaps[username] || 0) - Date.now();
-  if(cooldownleft > 0){
-    return;
-  }
   const response = await fetch(link + gamenum + "/reap", {
     method: "POST",
     headers: {
