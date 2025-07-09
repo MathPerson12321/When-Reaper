@@ -39,7 +39,7 @@ function mostrecentreapdisplay(){
   const arr = Object.entries(reaps);
   let count = 1;
 
-  for(let i = 0; i < reaps.length && count <= 10; i++){
+  for(let i = 0; i < arr.length && count <= 10; i++){
     let [reapnum,details] = arr[i];
     if(!details.timestamp){
       let [num,details2] = details
@@ -171,9 +171,9 @@ async function reaped() {
     return;
   }else{
     const index = Object.keys(reaps).length + 1;
-    reaps[index] = msgData.reap;
-    const user = msgData.reap.user;
-    userlastreaps[user] = msgData.reap.timestamp;
+    reaps[index] = data.reap;
+    const user = data.reap.user;
+    userlastreaps[user] = data.reap.timestamp;
     displayCooldown(Date.now());
     mostrecentreapdisplay();
   }
