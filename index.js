@@ -283,6 +283,21 @@ async function sendBonusHTML(bonus,gamenum,user){
   }
 }
 
+async function useFreeReap(user,gamenum){
+  let ref = db.ref(`game${gamenum}/special/freereaps/counts/${user}`);
+  let val = await ref.once("value")
+  let count = val.val()
+  if(count > 0){
+    //Reap
+    await ref.transaction((current) => {
+      return (current || 0) - 1;
+    });
+    return true;
+  }else{
+    return false;
+  }
+}
+
 async function useBomb(user,gamenum){
   let ref = db.ref(`game${gamenum}/special/bombs/counts/${user}`);
   let val = await ref.once("value")
@@ -303,6 +318,32 @@ async function useBomb(user,gamenum){
   }
 }
 
+async function addFreeReap(user, gamenum) {
+  const ref = db.ref(`game${gamenum}/special/freereaps/counts/${user}`);
+  await ref.transaction((current) => {
+    return (current || 0) + 1;
+  });
+  return await sendBonusHTML("freereaps",gamenum,user)
+}
+
+async function freeReapBonus(user,gamenum)
+{
+  //Activated when a bonus or divider is activated
+  let rate = await db.ref(`game${gamenum}/special/freereaps/rate`).once("value");
+  reaps = reaps.val();
+  rate = rate.val();
+  let bonus = rate + (rate*(Math.log(rate*reaps+1)));
+  const rand = Math.random() * 100;
+  if(rand < bonus){
+    await db.ref(`game${gamenum}/special/freereaps/bonuspassed`).set(0);
+    let content = await addFreeReap(user,gamenum)
+    return [true,content];
+  }else{
+    let reapspass = await db.ref(`game${gamenum}/special/freereaps/bonuspassed`).once("value");
+    await db.ref(`game${gamenum}/special/freereaps/bonuspassed`).set(reapspass.val()+1);
+    return [false];
+  }
+}
 async function addBomb(user, gamenum) {
   const ref = db.ref(`game${gamenum}/special/bombs/counts/${user}`);
   await ref.transaction((current) => {
@@ -681,6 +722,13 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
         text = "Imagine being sniped"
       }else{
         text += ", also imagine being sniped"
+      }
+    }
+
+    if(endbonus != 1){
+      let freereap = await bombBonus(gamenum,username);
+      if(freereap[0]){
+        console.log("FREE REAP GIVEN TO " + username)
       }
     }
 
