@@ -474,6 +474,9 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
 
   const now = Date.now();
   let chat = getChat(curlink)
+  if(!chatCooldowns.has(chat)){
+    chatCooldowns.set(chat,new Map());
+  }
   const last = chatCooldowns.get(chat).get(userId);
   if (last && now - last < chatcd) {
     const waitTime = ((chatcd - (now - last)) / 1000).toFixed(1);
