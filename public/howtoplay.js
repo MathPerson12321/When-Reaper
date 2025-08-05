@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const info = `
+    let info = `
     <div id="information">
         <p>Welcome to When Reaper, a universe all about time! Here, you must steal time from the mainframe by "reaping" and add it to your collection, however, you must recharge (which takes some amount of time) before being able to take time again.</p>
         <p>However, there are extra natural events this universe stores in its space, including ones that make your time more valuable or less valuable.</p>
@@ -7,4 +7,12 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
     `;
     document.getElementById("title").insertAdjacentHTML("afterend", info);
+
+    info = `
+    <div id="announcements">
+        <h2>Announcements</h2>
+        <p><b>The Game 3 page is currently unavailable due to an issue, the game will be delayed.</b></p>
+    </div>
+    `;
+    document.getElementById("information").insertAdjacentHTML("afterend", info);
 });
