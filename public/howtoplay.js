@@ -8,12 +8,4 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
     `;
     document.getElementById("title").insertAdjacentHTML("afterend", info);
-
-    info = `
-    <div id="announcements">
-        <h2>Announcements</h2>
-        <p><b>Game 3 has been delayed, and the win time and cooldown will not be revealed.</b></p>
-    </div>
-    `;
-    document.getElementById("information").insertAdjacentHTML("afterend", info);
 });
