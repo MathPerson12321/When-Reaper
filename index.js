@@ -11,6 +11,7 @@ import {fileURLToPath} from "url";
 import rateLimit from "express-rate-limit";
 
 const chatCooldowns = new Map(); // userId => timestamp
+const chatcd = 3000;
 const usernameCache = new Map();
 
 
@@ -472,9 +473,10 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
   const userId = req.user.uid;
 
   const now = Date.now();
-  const last = chatCooldowns.get(userId);
-  if (last && now - last < 5000) {
-    const waitTime = ((5000 - (now - last)) / 1000).toFixed(1);
+  let chat = getChat(curlink)
+  const last = chatCooldowns.get(chat).get(userId);
+  if (last && now - last < chatcd) {
+    const waitTime = ((chatcd - (now - last)) / 1000).toFixed(1);
     return res.status(429).json({ msg: "Slow down."});
   }
 
@@ -485,7 +487,6 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
     return res.json({ msg:"Bro tried to bot chat messages on a useless game and still failed. How bad are you at ts gang 🥀" });
   }
   const username = await getUsernameCached(userId);
-  let chat = getChat(curlink)
   const chatDocRef = firestore.collection("gamechat").doc(chat +"chat").collection("messages");
   for (const char of message){
     const code = char.charCodeAt(0);
@@ -510,7 +511,7 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
   const savedDoc = await docRef.get();
   const savedMessage = savedDoc.data();
 
-  chatCooldowns.set(userId, now);
+  chatCooldowns.get(chat).set(userId, now);
 
   // Broadcast to all WS clients
   broadcast({
