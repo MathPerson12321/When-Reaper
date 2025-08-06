@@ -238,7 +238,7 @@ async function getGames() {
         running = true;
       }
 
-      return {
+      return{
         name,
         running,
         description,
@@ -278,6 +278,14 @@ async function saveLeaderboard(gamenum, lb) {
 
 async function loadData(gamenum) {
   const snapshot = await db.ref(`game${gamenum}/gamedata`).once("value");
+  let values = snapshot.val()
+  if(!values.gamerunning){
+    return {
+      description: values.description,
+      gamerunning: values.gamerunning,
+      starttime: values.starttime
+    };
+  }
   return snapshot.exists() ? snapshot.val() : null;
 }
 
