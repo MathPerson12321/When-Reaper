@@ -476,11 +476,6 @@ app.get("/games", authenticateToken, async (req,res) => {
   return res.json(games);
 });
 
-app.get("/announcement", authenticateToken, async (req,res) => {
-  let result = await db.ref("/announcement").once("value");
-  return res.status(500).json({msg:result.val()});
-});
-
 app.get("/users/:userid", authenticateToken, async(req,res) => {
   const id = req.params.userid;
   const registered = await isLoggedIn(id);
