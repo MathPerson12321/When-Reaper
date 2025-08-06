@@ -1,9 +1,17 @@
+import {checkAuthAndRedirect} from "./authcheck.js";
+let user = await checkAuthAndRedirect();
 const link = "https://reaperclone.onrender.com/";
 
-async function fetchJSON(path){
-  const res = await fetch(link+path);
-  return await res.json();
+async function fetchJSON(path,token){
+    const idToken = token
+    let res = await fetch(link+path,{
+      headers:{
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+    return await res.json();
 }
+  
 
 function makeHtml(element){
     const gamediv = document.createElement("div");
@@ -56,7 +64,8 @@ function makeHtml(element){
 }
 
 async function getGames(){
-    let gamedata = await fetchJSON("games")
+    let token = await user.getIdToken();
+    let gamedata = await fetchJSON("games",token)
     for(let i=0;i<gamedata.length;i++){
         let element = gamedata[i];
         makeHtml(element);

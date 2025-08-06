@@ -471,15 +471,24 @@ app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname,"public","login.html"));
 });
 
-app.get("/games", async (req, res) => {
+app.get("/games", authenticateToken, async (req,res) => {
   const games = await getGames();
-  res.json(games);
+  return res.json(games);
 });
 
-app.get("/users/:userid", async (req, res) => {
+app.get("/announcement", authenticateToken, async (req,res) => {
+  return res.status(500).json({msg:`
+    <div id="announcements">
+        <h2>Announcements</h2>
+        <p><b>Maintenence will happen at 8 PM ET and will end at 9 PM ET (could be earlier).</b></p>
+    </div>
+    `});
+});
+
+app.get("/users/:userid", authenticateToken, async(req,res) => {
   const id = req.params.userid;
   const registered = await isLoggedIn(id);
-  res.json(registered);
+  return res.json(registered);
 });
 
 app.post("/game:gameid/usebomb", authenticateToken, async (req, res) => {
@@ -488,9 +497,9 @@ app.post("/game:gameid/usebomb", authenticateToken, async (req, res) => {
   const user = await getUsernameCached(userId)
   let success = await useBomb(user,gameId)
   if(success){
-    res.status(200).json({message:"Bomb used"});
+    return res.status(200).json({message:"Bomb used"});
   }else{
-    res.status(400).json({message: "No bombs left"});
+    return res.status(400).json({message: "No bombs left"});
   }
 });
 
