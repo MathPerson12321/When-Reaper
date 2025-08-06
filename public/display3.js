@@ -281,7 +281,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   setInterval(async function() {
     const now = Date.now();
-    if(data.winner != "" && !data.gamerunning){
+    if(data.winner != "" && data.winner != null && !data.gamerunning){
       const finalUser = data.winner;
       if(!document.getElementById("winscreen")){
         inject(`<div id="winscreen"><h2>${finalUser} has won Game ${gamenum.substring(4)} of When Reaper.</h2><p style="font-size:16px">See you next time (in an alternate universe)!</p></div>`,"desc","afterend");
