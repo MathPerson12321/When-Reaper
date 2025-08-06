@@ -477,12 +477,8 @@ app.get("/games", authenticateToken, async (req,res) => {
 });
 
 app.get("/announcement", authenticateToken, async (req,res) => {
-  return res.status(500).json({msg:`
-    <div id="announcements">
-        <h2>Announcements</h2>
-        <p><b>Maintenence will happen at 8 PM ET and will end at 9 PM ET (could be earlier).</b></p>
-    </div>
-    `});
+  let res = await db.ref("/announcement").once("value");
+  return res.status(500).json({msg:res.val()});
 });
 
 app.get("/users/:userid", authenticateToken, async(req,res) => {
