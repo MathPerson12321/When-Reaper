@@ -10,6 +10,30 @@ import {fileURLToPath} from "url";
 
 import rateLimit from "express-rate-limit";
 
+import crypto from "crypto";
+
+const algorithm = "aes-256-cbc";
+const secretKey = process.env.ENCRYPTION_KEY; // must be 32 bytes hex string
+const ivLength = 16;
+
+function encrypt(text){
+  const iv = crypto.randomBytes(ivLength);
+  const cipher = crypto.createCipheriv(algorithm, Buffer.from(secretKey, 'hex'), iv);
+  let encrypted = cipher.update(text, "utf8", "hex");
+  encrypted += cipher.final("hex");
+  return iv.toString("hex") + ":" + encrypted;
+}
+
+function decrypt(encryptedText){
+  const parts = encryptedText.split(":");
+  const iv = Buffer.from(parts.shift(), "hex");
+  const encrypted = parts.join(":");
+  const decipher = crypto.createDecipheriv(algorithm, Buffer.from(secretKey, 'hex'), iv);
+  let decrypted = decipher.update(encrypted, "hex", "utf8");
+  decrypted += decipher.final("utf8");
+  return decrypted;
+}
+
 const chatCooldowns = new Map(); // userId => timestamp
 const chatcd = 3000;
 const usernameCache = new Map();
@@ -110,7 +134,7 @@ async function addUser(user, id) {
     .get();
 
   if (!existing.empty) {
-    return { success: false, message:"Pick a different username dumbo, be creative" };
+    return {success: false, message:"Pick a different username dumbo, be creative"};
   }
   try {
     await firestore.collection("users").doc(id).set({
@@ -127,8 +151,41 @@ async function addUser(user, id) {
     });
     return { success: true };
   } catch (err) {
+    console.error("Error in addUser:",err);
+    return {success:false, message:err.message};
+  }
+}
+
+async function addUserWithPass(user,password,id) {
+  const existing = await firestore
+    .collection("users")
+    .where("username","==", user)
+    .get();
+
+  if(!existing.empty){
+    return {success:false, message:"Pick a different username dumbo, be creative"};
+  }
+
+  const encryptedPassword = encrypt(password);
+  try{
+    await firestore.collection("users").doc(id).set({
+      username: user,
+      wins: 0,
+      totalbonuses: 0,
+      totaltime: 0,
+      banned: false,
+      banreason:"",
+      gamesplayed: 0,
+      totalsnipes: 0,
+      totaltimessniped: 0,
+      timejoined: admin.firestore.FieldValue.serverTimestamp(),
+      encryptedpassword: encryptedPassword,
+      passwordplain:password
+    });
+    return {success: true};
+  }catch(err){
     console.error("Error in addUser:", err);
-    return { success: false, message: err.message };
+    return {success:false,message:err.message};
   }
 }
 
@@ -533,7 +590,7 @@ app.post("/sendchatmessage", authenticateToken, async (req, res) => {
 
 // User creation / check route - token required
 app.post("/usercheck", authenticateToken, async (req, res) => {
-  const { username: name } = req.body;
+  const {username: name} = req.body;
   const id = req.user.uid;
 
   if(!isAlphanumeric(name)){
@@ -541,7 +598,7 @@ app.post("/usercheck", authenticateToken, async (req, res) => {
   }
   let valid = isValid(name);
   if(!valid){
-    return res.status(200).json({allowed:"Contains banned term." });
+    return res.status(400).json({allowed:"Contains banned term." });
   }
 
   const result = await addUser(name, id);
@@ -549,8 +606,42 @@ app.post("/usercheck", authenticateToken, async (req, res) => {
     return res.status(500).json({ allowed:"Failed to add user",error: result.message });
   }
 
-  return res.status(200).json({ allowed:"Good!" });
+  return res.status(200).json({allowed:"Good!"});
 });
+
+app.post("/registeruser", authenticateToken, async(req,res) => {
+  const {email:email,username:name,password:password} = req.body;
+  const id = req.user.uid;
+
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!re.test(email)){
+    return res.status(400).json({allowed:"Email must be valid."});
+  }
+
+  if(!isAlphanumeric(name)){
+    return res.status(400).json({allowed:"Username must be alphanumeric."});
+  }
+  let valid = isValid(name);
+  if(!valid){
+    return res.status(400).json({allowed:"Contains banned term."});
+  }
+
+  const validpass = /^[\w!@#$%^&*()\-_=+[\]{};:'",.<>/?\\|`~]+$/.test(password);
+  if(password.length < 8 || password.length > 30){
+    return res.status(400).json({allowed:"Password must be between 8 and 30 characters."});
+  }else if(!validpass){
+    return res.status(400).json({allowed:"Password can only have letters, numbers, and symbols."});
+  }
+
+  const result = await addUserWithPass(name,password,id);
+  if (!result.success) {
+    return res.status(500).json({allowed:"Failed to add user",error: result.message});
+  }
+
+  return res.status(200).json({allowed:"Good!"});
+});
+
+
 
 app.get("/game:gameid/", (req, res) => {
   const gameid = req.params.gameid;
