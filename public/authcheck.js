@@ -9,9 +9,14 @@ const registeredcache = new Map();
 let resolved = false;
 let cacheduser = null;
 
-async function fetchJSON(path){
-    const res = await fetch(link+path);
-    return await res.json();
+async function fetchJSON(path,token){
+  const idToken = token
+  let res = await fetch(link+path,{
+    headers:{
+      Authorization: `Bearer ${idToken}`,
+    },
+  });
+  return await res.json();
 }
 
 async function getCurrentUser() {
@@ -20,7 +25,7 @@ async function getCurrentUser() {
       resolve(cacheduser);
       return;
     }
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth,(user) => {
       cacheduser = user;
       resolved = true;
       unsubscribe();
@@ -32,6 +37,7 @@ async function getCurrentUser() {
 
 export async function checkAuthAndRedirect(){
   const user = await getCurrentUser();
+  let token = await user.getIdToken();
   if(!user){
     window.location.href = link + "login";
     return;
@@ -39,7 +45,7 @@ export async function checkAuthAndRedirect(){
   try{
     let registered = registeredcache.get(user.uid);
     if(registered == undefined){
-      registered = await fetchJSON("users/" + user.uid);
+      registered = await fetchJSON("users/" + user.uid,token);
       registeredcache.set(user.uid,registered);
     }
     if(registered){
@@ -61,9 +67,10 @@ export async function redirectFromLogin() {
   if(!user){
     return;
   }
+  let token = await user.getIdToken();
   let registered = registeredcache.get(user.uid);
   if(registered == undefined){
-    registered = await fetchJSON("users/" + user.uid);
+    registered = await fetchJSON("users/" + user.uid,token);
     registeredcache.set(user.uid,registered);
   }
   if(registered){
