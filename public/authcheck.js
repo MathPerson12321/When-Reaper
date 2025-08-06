@@ -22,8 +22,8 @@ async function fetchJSON(path,token){
 async function getCurrentUser() {
   return new Promise((resolve) => {
     if(resolved){
+      unsubscribe();
       resolve(cacheduser);
-      return;
     }
     const unsubscribe = onAuthStateChanged(auth,(user) => {
       cacheduser = user;
@@ -60,7 +60,6 @@ export async function checkAuthAndRedirect(){
     return;
   }
 }
-  
 
 export async function redirectFromLogin() {
   const user = await getCurrentUser();
