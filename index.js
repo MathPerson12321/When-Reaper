@@ -477,8 +477,8 @@ app.get("/games", authenticateToken, async (req,res) => {
 });
 
 app.get("/announcement", authenticateToken, async (req,res) => {
-  let res = await db.ref("/announcement").once("value");
-  return res.status(500).json({msg:res.val()});
+  let result = await db.ref("/announcement").once("value");
+  return res.status(500).json({msg:result.val()});
 });
 
 app.get("/users/:userid", authenticateToken, async(req,res) => {
