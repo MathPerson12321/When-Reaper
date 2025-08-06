@@ -1,8 +1,4 @@
-import {checkAuthAndRedirect} from "./authcheck.js";
-const link = "https://reaperclone.onrender.com/";
 document.addEventListener("DOMContentLoaded", async() => {
-    let user = await checkAuthAndRedirect();
-    const idToken = await user.getIdToken();
     let res = `
     <div id="announcements">
         <h2>Announcements</h2>
