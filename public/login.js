@@ -124,8 +124,8 @@ document.addEventListener("DOMContentLoaded", async() => {
   });
 
   document.getElementById("login").addEventListener("click", async() => {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+    const email = document.getElementById("emaillogin").value;
+    const password = document.getElementById("passwordlogin").value;
 
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if(!re.test(email)){
