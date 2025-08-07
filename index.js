@@ -376,6 +376,7 @@ async function useFreeReap(user,gamenum){
   let count = val.val()
   if(count > 0){
     //Reap
+    reap(gamenum,user.uid,true)
     await ref.transaction((current) => {
       return (current || 0) - 1;
     });
@@ -473,6 +474,197 @@ async function bombBonus(gamenum,user){
     return [false];
   }
 }
+
+async function reap(gamenum,userId,isfreereap){
+  if(reapingLocks.has(userId)){
+    return res.status(429).json({error:"Reap already in progress" });
+  }
+
+  reapingLocks.add(userId);
+
+  try{
+    const username = await getUsernameCached(userId);
+    const data = await loadData(gamenum);
+    const now = Date.now();
+
+    if (!data || !data.gamerunning || now < data.starttime) {
+      return res.status(400).json({error:"Game is not running"});
+    }
+
+    if (data.winner !=="") {
+      return res.status(400).json({error:"Game has ended"});
+    }
+
+    const lastUserReaps = await loadLastUserReaps(gamenum);
+    const reaps = await loadReaps(gamenum);
+    const leaderboard = await loadLeaderboard(gamenum);
+
+    const userLastReap = lastUserReaps[username] || 0;
+    if(!isfreereap){
+      if (now - userLastReap < data.cooldown) {
+        const waitTime = data.cooldown - (now - userLastReap);
+        return res.status(429).json({error: `Cooldown active. Wait ${waitTime} ms` });
+      }
+    }
+
+    const reapTimestamps = Object.values(reaps).map((r) => r.timestamp);
+    const lastReapTimestamp =
+      reapTimestamps.length > 0 ? Math.max(...reapTimestamps) : data.starttime;
+
+    let timeGained = now - lastReapTimestamp;
+
+    let text = "";
+    let finaluser = username
+    let bonus = await bombBonus(gamenum,username);
+    let endbonus = 1;
+    let divider = 1;
+    let bomb = "";
+    let free = false;
+    let sniped = false;
+    if(bonus[0]){
+      console.log("BOMB FOR " + username)
+    }
+    let bombs = await getActiveBombs(gamenum)
+    const oldest = bombs[0];
+    if(oldest){
+      //The reap has been bombed.
+      let texts = ["Bombed by " + oldest.user, oldest.user + " used a bomb for destruction", oldest.user + "'s bomb was activated"]
+      text = texts[Math.floor(Math.random() * texts.length)];
+      finaluser = oldest.user
+      bomb = oldest.user
+
+      await db.ref(`game${gamenum}/special/bombs/activated/${oldest.key}`).remove();
+      console.log("Removed bomb activated by", oldest.user);
+    }else{
+      const rawbonuses = await getBonuses();
+      const rawdividers = await getDivisors();
+      const bonuses = Object.entries(rawbonuses).sort((a, b) => b[1] - a[1]);
+      const divisors = Object.entries(rawdividers);
+
+      // Multiplier
+      let counter = 2;
+
+      for (const key in bonuses) {
+        const val = bonuses[key][1] * 10;
+        const rand = Math.floor(Math.random() * 1000) + 1;
+        if (rand <= val) {
+          endbonus = counter;
+          text = bonuses[key][0];
+        }
+        counter++;
+      }
+      timeGained *= endbonus;
+
+      if (endbonus == 1) {
+        // Divide
+        for (const key in divisors) {
+          const divide = divisors[key][1][0];
+          const val = divisors[key][1][1] * 10;
+          const rand = Math.floor(Math.random() * 1000) + 1;
+          if (rand <= val) {
+            divider = divide;
+            text = divisors[key][0];
+          }
+          counter++;
+        }
+        timeGained /= divider;
+      }
+    }
+
+
+    const timeGainedSec = Math.round((timeGained / 1000) * 1000) / 1000;
+    if(timeGainedSec < 10){
+      sniped = true
+    }
+    if(sniped){
+      if(text == ""){
+        text = "Imagine being sniped"
+      }else{
+        text += ", also imagine being sniped"
+      }
+    }
+
+    if(endbonus != 1){
+      let freereap = await freeReapBonus(gamenum,username,true);
+      if(freereap[0]){
+        console.log("FREE REAP GIVEN TO " + username)
+        free = true
+      }
+    }else{
+      let freereap = await freeReapBonus(gamenum,username,false); //No multi or divider
+      if(freereap[0]){
+        console.log("FREE REAP GIVEN TO " + username)
+        free = true
+      }
+    }
+
+    const reapNumber = Object.keys(reaps).length + 1;
+    const reapEntry = {
+      user: username,
+      timestamp: now,
+      timegain: timeGainedSec,
+      bonus: endbonus,
+      divided: divider,
+      bonustext: text,
+      bombbonus: bonus[0],
+      html: bonus[1] || "",
+      bombed: bomb, //Was bombed - time goes to someone else (is blank if not bombed)
+      freereap: free //Was a free reap
+    };
+    //Public one
+    const reapEntry2 = {
+      user: username,
+      timestamp: now,
+      timegain: timeGainedSec,
+      bonustext: text, //Bonus text, can include being bombed
+      bv: bonus[0], //Bomb bonus gotten?
+      h: bonus[1] || "" //Sent html
+    };
+
+    reaps[reapNumber] = reapEntry;
+    lastUserReaps[username] = now;
+
+    if (!leaderboard[finaluser]) {
+      leaderboard[finaluser] = {time: 0, reapcount: 0};
+    }
+
+    leaderboard[finaluser].time = Math.round(
+      (leaderboard[finaluser].time + timeGainedSec) * 1000
+    )/1000;
+    leaderboard[username].reapcount += 1;
+
+    if (leaderboard[finaluser].time * 1000 >= data.endtime) {
+      data.gamerunning = false;
+      data.gameendtime = now;
+      data.winner = finaluser;
+      await saveData(gamenum, data);
+      broadcast({
+        type: "win",
+        winner: finaluser,
+      });
+    }
+
+    await saveReaps(gamenum, reaps);
+    await saveLastUserReaps(gamenum, lastUserReaps);
+    await saveLeaderboard(gamenum, leaderboard);
+
+    broadcast({type:"reap", reap:reapEntry2});
+
+    return res.json({
+      success: true,
+      message:"Reap successful",
+      reap: reapEntry2,
+      cooldown: data.cooldown,
+      leaderboard,
+    });
+  }catch (err){
+    console.error("[REAP error]", err);
+    return res.status(500).json({error:"Internal servererror"});
+  }finally{
+    reapingLocks.delete(userId);
+  }
+}
+
 
 // ------------------ WebSocket connection logs ------------------
 
@@ -758,187 +950,7 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
   const gamenum = req.params.gameid;
   const userId = req.user.uid;
 
-  if(reapingLocks.has(userId)){
-    return res.status(429).json({error:"Reap already in progress" });
-  }
-
-  reapingLocks.add(userId);
-
-  try{
-    const username = await getUsernameCached(userId);
-    const data = await loadData(gamenum);
-    const now = Date.now();
-
-    if (!data || !data.gamerunning || now < data.starttime) {
-      return res.status(400).json({error:"Game is not running"});
-    }
-
-    if (data.winner !=="") {
-      return res.status(400).json({error:"Game has ended"});
-    }
-
-    const lastUserReaps = await loadLastUserReaps(gamenum);
-    const reaps = await loadReaps(gamenum);
-    const leaderboard = await loadLeaderboard(gamenum);
-
-    const userLastReap = lastUserReaps[username] || 0;
-    if (now - userLastReap < data.cooldown) {
-      const waitTime = data.cooldown - (now - userLastReap);
-      return res.status(429).json({error: `Cooldown active. Wait ${waitTime} ms` });
-    }
-
-    const reapTimestamps = Object.values(reaps).map((r) => r.timestamp);
-    const lastReapTimestamp =
-      reapTimestamps.length > 0 ? Math.max(...reapTimestamps) : data.starttime;
-
-    let timeGained = now - lastReapTimestamp;
-
-    let text = "";
-    let finaluser = username
-    let bonus = await bombBonus(gamenum,username);
-    let endbonus = 1;
-    let divider = 1;
-    let bomb = "";
-    let sniped = false;
-    if(bonus[0]){
-      console.log("BOMB FOR " + username)
-    }
-    let bombs = await getActiveBombs(gamenum)
-    const oldest = bombs[0];
-    if(oldest){
-      //The reap has been bombed.
-      let texts = ["Bombed by " + oldest.user, oldest.user + " used a bomb for destruction", oldest.user + "'s bomb was activated"]
-      text = texts[Math.floor(Math.random() * texts.length)];
-      finaluser = oldest.user
-      bomb = oldest.user
-
-      await db.ref(`game${gamenum}/special/bombs/activated/${oldest.key}`).remove();
-      console.log("Removed bomb activated by", oldest.user);
-    }else{
-      const rawbonuses = await getBonuses();
-      const rawdividers = await getDivisors();
-      const bonuses = Object.entries(rawbonuses).sort((a, b) => b[1] - a[1]);
-      const divisors = Object.entries(rawdividers);
-
-      // Multiplier
-      let counter = 2;
-
-      for (const key in bonuses) {
-        const val = bonuses[key][1] * 10;
-        const rand = Math.floor(Math.random() * 1000) + 1;
-        if (rand <= val) {
-          endbonus = counter;
-          text = bonuses[key][0];
-        }
-        counter++;
-      }
-      timeGained *= endbonus;
-
-      if (endbonus == 1) {
-        // Divide
-        for (const key in divisors) {
-          const divide = divisors[key][1][0];
-          const val = divisors[key][1][1] * 10;
-          const rand = Math.floor(Math.random() * 1000) + 1;
-          if (rand <= val) {
-            divider = divide;
-            text = divisors[key][0];
-          }
-          counter++;
-        }
-        timeGained /= divider;
-      }
-    }
-
-
-    const timeGainedSec = Math.round((timeGained / 1000) * 1000) / 1000;
-    if(timeGainedSec < 10){
-      sniped = true
-    }
-    if(sniped){
-      if(text == ""){
-        text = "Imagine being sniped"
-      }else{
-        text += ", also imagine being sniped"
-      }
-    }
-
-    if(endbonus != 1){
-      let freereap = await freeReapBonus(gamenum,username,true);
-      if(freereap[0]){
-        console.log("FREE REAP GIVEN TO " + username)
-      }
-    }else{
-      let freereap = await freeReapBonus(gamenum,username,false); //No multi or divider
-      if(freereap[0]){
-        console.log("FREE REAP GIVEN TO " + username)
-      }
-    }
-
-    const reapNumber = Object.keys(reaps).length + 1;
-    const reapEntry = {
-      user: username,
-      timestamp: now,
-      timegain: timeGainedSec,
-      bonus: endbonus,
-      divided: divider,
-      bonustext: text,
-      bombbonus: bonus[0],
-      html: bonus[1] || "",
-      bombed: bomb //Was bombed - time goes to someone else (is blank if not bombed)
-    };
-    //Public one
-    const reapEntry2 = {
-      user: username,
-      timestamp: now,
-      timegain: timeGainedSec,
-      bonustext: text, //Bonus text, can include being bombed
-      bv: bonus[0], //Bomb bonus gotten?
-      h: bonus[1] || "" //Sent html
-    };
-
-    reaps[reapNumber] = reapEntry;
-    lastUserReaps[username] = now;
-
-    if (!leaderboard[finaluser]) {
-      leaderboard[finaluser] = {time: 0, reapcount: 0};
-    }
-
-    leaderboard[finaluser].time = Math.round(
-      (leaderboard[finaluser].time + timeGainedSec) * 1000
-    ) / 1000;
-    leaderboard[username].reapcount += 1;
-
-    if (leaderboard[finaluser].time * 1000 >= data.endtime) {
-      data.gamerunning = false;
-      data.gameendtime = now;
-      data.winner = finaluser;
-      await saveData(gamenum, data);
-      broadcast({
-        type: "win",
-        winner: finaluser,
-      });
-    }
-
-    await saveReaps(gamenum, reaps);
-    await saveLastUserReaps(gamenum, lastUserReaps);
-    await saveLeaderboard(gamenum, leaderboard);
-
-    broadcast({type:"reap", reap: reapEntry2});
-
-    res.json({
-      success: true,
-      message:"Reap successful",
-      reap: reapEntry2,
-      cooldown: data.cooldown,
-      leaderboard,
-    });
-  }catch (err){
-    console.error("[REAP error]", err);
-    res.status(500).json({error:"Internal servererror" });
-  }finally{
-    reapingLocks.delete(userId);
-  }
+  return reap(gamenum,userId,false) //3rd one means no freereap
 });
 
 app.get("/:gameid/gamedata", async (req, res) => {
@@ -959,7 +971,7 @@ app.get("/:gameid/gamedata", async (req, res) => {
     return res.status(200).json(data);
   }catch (err){
     console.error(err);
-    res.status(500).json({error:"Internal servererror" });
+    return res.status(500).json({error:"Internal servererror" });
   }
 });
 
@@ -987,7 +999,7 @@ const publicPaths = [
 
 app.use((req, res) => {
   console.log(`[SERVER] 404 Not Found for ${req.method} ${req.originalUrl}`);
-  res.status(404).send("Not Found");
+  return res.status(404).send("Not Found");
 });
 
 // ------------------ Start Server ------------------ 
