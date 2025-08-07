@@ -37,12 +37,12 @@ async function getCurrentUser() {
 
 export async function checkAuthAndRedirect(){
   const user = await getCurrentUser();
-  let token = await user.getIdToken();
   if(!user){
     window.location.href = link + "login";
     return;
   }
   try{
+    let token = await user.getIdToken();
     let registered = registeredcache.get(user.uid);
     if(registered == undefined){
       registered = await fetchJSON("users/" + user.uid,token);
