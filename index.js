@@ -347,6 +347,27 @@ async function sendBonusHTML(bonus,gamenum,user){
     }
     return "";
   }
+  if(bonus == "freereaps"){
+    let count = await sendBonus("freereaps",gamenum,user);
+    if(count > 0){
+      let html = `
+        <div id='freereap-container'>
+          <p id='freereap-desc'>
+            You have <span id='freereap-count'>${count}</span> rechargers ready to use.
+            Remember to not let any of your enemies nor comrades know about this weapon, 
+            as it is capable of ultimate destruction, something unheard of in the universe of When Reaper.
+
+            This weapon will allow you to take the current time available, when activated, and will not affect your cooldown (if you are on it).
+          </p>
+          <button id='freereap-use' type='submit' style='cursor: pointer;'>
+            Click to instantly recharge
+          </button><br><br>
+        </div>
+      `;
+      return html;
+    }
+    return "";
+  }
 }
 
 async function useFreeReap(user,gamenum){
@@ -392,7 +413,7 @@ async function addFreeReap(user, gamenum) {
   return await sendBonusHTML("freereaps",gamenum,user)
 }
 
-async function freeReapBonus(user,gamenum)
+async function freeReapBonus(user,gamenum,increasecount)
 {
   //Activated when a bonus or divider is activated
   let rate = await db.ref(`game${gamenum}/special/freereaps/rate`).once("value");
@@ -402,14 +423,16 @@ async function freeReapBonus(user,gamenum)
   const rand = Math.random() * 100;
   if(rand < bonus){
     await db.ref(`game${gamenum}/special/freereaps/bonuspassed`).set(0);
-    let content = await addFreeReap(user,gamenum)
+    let content = await addFreeReap(user,gamenum);
     return [true,content];
-  }else{
+  }else if(increasecount){
     let reapspass = await db.ref(`game${gamenum}/special/freereaps/bonuspassed`).once("value");
     await db.ref(`game${gamenum}/special/freereaps/bonuspassed`).set(reapspass.val()+1);
     return [false];
   }
+  return [false];
 }
+
 async function addBomb(user, gamenum) {
   const ref = db.ref(`game${gamenum}/special/bombs/counts/${user}`);
   await ref.transaction((current) => {
@@ -497,6 +520,18 @@ app.post("/game:gameid/usebomb", authenticateToken, async (req, res) => {
   let success = await useBomb(user,gameId)
   if(success){
     return res.status(200).json({message:"Bomb used"});
+  }else{
+    return res.status(400).json({message: "No bombs left"});
+  }
+});
+
+app.post("/game:gameid/usefreereap", authenticateToken, async (req, res) => {
+  const userId = req.user.uid;
+  const gameId = req.params.gameid;
+  const user = await getUsernameCached(userId)
+  let success = await useFreeReap(user,gameId)
+  if(success){
+    return res.status(200).json({message:"Free Reap used"});
   }else{
     return res.status(400).json({message: "No bombs left"});
   }
@@ -829,7 +864,12 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
     }
 
     if(endbonus != 1){
-      let freereap = await bombBonus(gamenum,username);
+      let freereap = await freeReapBonus(gamenum,username,true);
+      if(freereap[0]){
+        console.log("FREE REAP GIVEN TO " + username)
+      }
+    }else{
+      let freereap = await freeReapBonus(gamenum,username,false); //No multi or divider
       if(freereap[0]){
         console.log("FREE REAP GIVEN TO " + username)
       }

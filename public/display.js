@@ -32,19 +32,13 @@ async function writeJSON(path,path2,data){
 }
 
 function mostrecentreapdisplay(){
-  if (!reaps || Object.keys(reaps).length == 0){
+  if (!reaps || reaps.length == 0){
     return;
   }
 
-  const arr = Object.entries(reaps);
   let count = 1;
-
   for(let i = 0; i < reaps.length && count <= 10; i++){
-    let [reapnum,details] = arr[i];
-    if(!details.timestamp){
-      let [num,details2] = details
-      details = details2
-    } 
+    const details = reaps[i];
     const date = new Date(details.timestamp);
     const options = { month: "short", day: "2-digit" };
     const datePart = date.toLocaleDateString("en-US", options);
@@ -170,10 +164,8 @@ async function reaped() {
     alert(data.error || "Error during reaping");
     return;
   }else{
-    const index = Object.keys(reaps).length + 1;
-    reaps[index] = msgData.reap;
-    const user = msgData.reap.user;
-    userlastreaps[user] = msgData.reap.timestamp;
+    const user = data.reap.user;
+    userlastreaps[user] = data.reap.timestamp;
     displayCooldown(Date.now());
     mostrecentreapdisplay();
   }
@@ -185,8 +177,8 @@ function displayTime(ms){
 
 function getTimeFromUnix(ms){
   let time = ms - data.starttime;
-  if (reaps && Object.keys(reaps).length > 0){
-    const [_, lastreap] = reaps[0];
+  if (reaps && reaps.length > 0){
+    const lastreap = reaps[0];
     time = ms - lastreap.timestamp;
   }
   return time;
@@ -208,16 +200,13 @@ async function pageLoad(){
     fetchJSON("/lastuserreap", gamenum, user),
     fetchJSON("/leaderboard",gamenum,user)
   ]);
-  const entries = Object.entries(reaps);
-  reaps = entries.filter(function([key,value]){
-    return value !== null;
-  });
+  reaps = Object.values(reaps).sort((a,b) => b.timestamp-a.timestamp);
   makeLeaderboard();
   mostrecentreapdisplay();
 }
 
 document.addEventListener("click", async (e) => {
-  if (e.target && e.target.id == "bomb-use") {
+  if(e.target && e.target.id == "bomb-use") {
     const idToken = await user.getIdToken();
     const response = await fetch(link + gamenum + "/usebomb", {
       method: "POST",
@@ -242,6 +231,31 @@ document.addEventListener("click", async (e) => {
       alert(err.message || "Failed to use bomb.");
     }
   }
+  if(e.target && e.target.id == "freereap-use") {
+    const idToken = await user.getIdToken();
+    const response = await fetch(link + gamenum + "/usefreereap", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({})
+    });
+
+    if(response.ok){
+      const el = document.getElementById("freereap-count");
+      let val = parseInt(el.textContent);
+      if (!isNaN(val) && val > 0) {
+        el.textContent = val - 1;
+        if (val - 1 <= 0) {
+          document.getElementById("freereap-container").remove();
+        }
+      }
+    }else{
+      const err = await response.json();
+      alert(err.message || "Failed to use free reap.");
+    }
+  }
 });
 
 
@@ -260,8 +274,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   socket.addEventListener("message", async (event) => {
     const msgData = JSON.parse(event.data);
     if(msgData.type == "reap"){
-      const index = Object.keys(reaps).length + 1;
-      reaps[index] = msgData.reap;
+      reaps.unshift(msgData.reap);
       const user = msgData.reap.user;
       userlastreaps[user] = msgData.reap.timestamp;
       mostrecentreapdisplay();
@@ -293,7 +306,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   setInterval(async function() {
     const now = Date.now();
-    if(data.winner != "" && !data.gamerunning){
+    if(data.winner != "" && data.winner != null && !data.gamerunning){
       const finalUser = data.winner;
       if(!document.getElementById("winscreen")){
         inject(`<div id="winscreen"><h2>${finalUser} has won Game ${gamenum.substring(4)} of When Reaper.</h2><p style="font-size:16px">See you next time (in an alternate universe)!</p></div>`,"desc","afterend");

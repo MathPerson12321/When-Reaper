@@ -206,7 +206,7 @@ async function pageLoad(){
 }
 
 document.addEventListener("click", async (e) => {
-  if (e.target && e.target.id == "bomb-use") {
+  if(e.target && e.target.id == "bomb-use") {
     const idToken = await user.getIdToken();
     const response = await fetch(link + gamenum + "/usebomb", {
       method: "POST",
@@ -229,6 +229,31 @@ document.addEventListener("click", async (e) => {
     }else{
       const err = await response.json();
       alert(err.message || "Failed to use bomb.");
+    }
+  }
+  if(e.target && e.target.id == "freereap-use") {
+    const idToken = await user.getIdToken();
+    const response = await fetch(link + gamenum + "/usefreereap", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({})
+    });
+
+    if(response.ok){
+      const el = document.getElementById("freereap-count");
+      let val = parseInt(el.textContent);
+      if (!isNaN(val) && val > 0) {
+        el.textContent = val - 1;
+        if (val - 1 <= 0) {
+          document.getElementById("freereap-container").remove();
+        }
+      }
+    }else{
+      const err = await response.json();
+      alert(err.message || "Failed to use free reap.");
     }
   }
 });
