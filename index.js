@@ -13,7 +13,7 @@ import rateLimit from "express-rate-limit";
 import crypto from "crypto";
 
 const algorithm = "aes-256-cbc";
-const secretKey = process.env.ENCRYPTION_KEY; // must be 32 bytes hex string
+const secretKey = "790fca27d97163865522a306cd29a364b32f8a138e42b373992940fdbfd6bd08"
 const ivLength = 16;
 
 function encrypt(text){
