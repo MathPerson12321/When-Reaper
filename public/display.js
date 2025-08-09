@@ -165,7 +165,7 @@ async function reaped() {
     return;
   }else{
     const user = data.reap.user;
-    userlastreaps[user] = data.reap.timestamp;
+    userlastreaps = data.reap.timestamp;
     displayCooldown(Date.now());
     mostrecentreapdisplay();
   }
@@ -185,7 +185,7 @@ function getTimeFromUnix(ms){
 }
 
 function displayCooldown(ms){
-  let cooldownleft = data.cooldown + (userlastreaps[username] || 0) - Date.now();
+  let cooldownleft = data.cooldown + (userlastreaps || 0) - Date.now();
   document.getElementById("cd").innerHTML = "Cooldown: " + timetoseconds(cooldownleft) + " left";
 }
 
@@ -276,7 +276,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if(msgData.type == "reap"){
       reaps.unshift(msgData.reap);
       const user = msgData.reap.user;
-      userlastreaps[user] = msgData.reap.timestamp;
+      userlastreaps = msgData.reap.timestamp;
       mostrecentreapdisplay();
     }
 
@@ -321,7 +321,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("wait").style.display = "none";
         document.getElementById("game").style.display = "block";
         displayTime(now);
-        if(now - (userlastreaps[username] || 0) < data.cooldown){
+        if(now - (userlastreaps || 0) < data.cooldown){
           document.getElementById("reapstuff").style.display = "none";
           document.getElementById("cooldown").style.display = "block";
           displayCooldown(now);

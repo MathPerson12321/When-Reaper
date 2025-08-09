@@ -258,8 +258,8 @@ async function saveReaps(gamenum, reaps) {
   await db.ref(`game${gamenum}/reaps`).set(reaps);
 }
 
-async function loadLastUserReaps(gamenum) {
-  const snapshot = await db.ref(`game${gamenum}/lastuserreap`).once("value");
+async function loadLastUserReaps(gamenum,user) {
+  const snapshot = await db.ref(`game${gamenum}/lastuserreap/`+user).once("value");
   return snapshot.exists() ? snapshot.val() || {} : {};
 }
 
@@ -495,11 +495,11 @@ async function reap(gamenum,userId,isfreereap){
       return res.status(400).json({error:"Game has ended"});
     }
 
-    const lastUserReaps = await loadLastUserReaps(gamenum);
+    const lastUserReap = await loadLastUserReaps(gamenum,username);
     const reaps = await loadReaps(gamenum);
     const leaderboard = await loadLeaderboard(gamenum);
 
-    const userLastReap = lastUserReaps[username] || 0;
+    const userLastReap = lastUserReaps || 0;
     if(!isfreereap){
       if (now - userLastReap < data.cooldown) {
         const waitTime = data.cooldown - (now - userLastReap);
@@ -877,14 +877,12 @@ app.post("/registeruser", authenticateToken, async(req,res) => {
   return res.status(200).json({allowed:"Good!"});
 });
 
-
-
-app.get("/game:gameid/", (req, res) => {
+app.get("/game:gameid/", authenticateToken, (req, res) => {
   const gameid = req.params.gameid;
   res.sendFile(path.join(__dirname,"public","gamepage" + gameid +".html"));
 });
 
-app.get("/game:gameid/leaderboard", async (req, res) => {
+app.get("/game:gameid/leaderboard", authenticateToken, async (req, res) => {
   const gamenum = req.params.gameid;
   try {
     const leaderboard = await loadLeaderboard(gamenum);
@@ -895,7 +893,7 @@ app.get("/game:gameid/leaderboard", async (req, res) => {
   }
 });
 
-app.get("/game:gameid/reaps", async (req, res) => {
+app.get("/game:gameid/reaps", authenticateToken, async (req, res) => {
   const gamenum = req.params.gameid;
   try{
     const reaps = await loadReaps(gamenum);
@@ -917,24 +915,16 @@ app.get("/game:gameid/reaps", async (req, res) => {
   }
 });
 
-app.get("/game:gameid/lastuserreap", async (req, res) => {
+app.get("/game:gameid/lastuserreap", authenticateToken, async (req, res) => {
   const gamenum = req.params.gameid;
+  const id = req.user.uid;
+  const username = getUsernameCached(id);
   try {
     const last = await loadLastUserReaps(gamenum);
     res.json(last);
   } catch (err) {
     console.error(err);
     res.status(500).json({error:"Internal servererror" });
-  }
-});
-
-app.get("/me", authenticateToken, async (req, res) => {
-  const userId = req.user.uid;
-  try {
-    const username = await getUsernameCached(userId);
-    return res.json({ username });
-  } catch {
-    return res.status(404).json({ error: "User not found" });
   }
 });
 
