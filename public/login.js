@@ -134,9 +134,12 @@ document.addEventListener("DOMContentLoaded", async() => {
       return;
     }
 
-    const valid = isValid(username);
-    if(!valid){
-      document.getElementById("error").innerHTML = "Username must be valid.";
+    const validpass = /^[\w!@#$%^&*()\-_=+[\]{};:'",.<>/?\\|`~]+$/.test(password);
+    if(password.length < 8 || password.length > 30){
+      document.getElementById("error").innerHTML = "Password must be between 8 and 30 characters.";
+      return;
+    }else if(!validpass){
+      document.getElementById("error").innerHTML = "Password can only have letters, numbers, and symbols.";
       return;
     }
 

@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", async() => {
     let res = `
     <div id="announcements">
         <h2>Announcements</h2>
-        <p><b>You can now sign-up with a username, email, and password instead of google! Logging out + alt detection is the next update.</p>
+        <p><b>Major bug in logging in and creating accounts, Game 3 has been DELAYED to TBD.</p>
         <p>Good luck in Game 3! Free reaps are now a thing.</p></b>
     </div>
      `
