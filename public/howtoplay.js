@@ -9,3 +9,13 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
     document.getElementById("title").insertAdjacentHTML("afterend", info);
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+    let info = `
+    <div id="watermark">
+        <p><b>© 2025 CircularBlox. All rights reserved.</b></p>
+        <p>When Reaper is a copyrighted work created by CircularBlox. Reproduction and distribution of this game is permitted for noncommercial purposes only.</p>
+    </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', info);
+});
