@@ -63,8 +63,8 @@ document.addEventListener("DOMContentLoaded", async() => {
 
   document.getElementById("senduser").addEventListener("click", async() => {
     const username = document.getElementById("usernamebox").value;
-    const isValid = isValid(username);
-    if(!isValid){
+    const valid = isValid(username);
+    if(!valid){
       return;
     }
     try{
@@ -93,13 +93,14 @@ document.addEventListener("DOMContentLoaded", async() => {
       return;
     }
 
-    const isValid = isValid(username);
-    if(!isValid){
+    const valid = isValid(username);
+    if(!valid){
       return;
     }
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if(!re.test(email)){
       document.getElementById("error").innerHTML = "Email must be valid.";
+      return;
     }
 
     try{
@@ -130,10 +131,11 @@ document.addEventListener("DOMContentLoaded", async() => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if(!re.test(email)){
       document.getElementById("error").innerHTML = "Email must be valid.";
+      return;
     }
 
     try{
-      const result = await createUserWithEmailAndPassword(auth,email,password);
+      const result = await signInWithEmailAndPassword(auth,email,password);
       const user = result.user;
 
       await user.reload();
