@@ -12,7 +12,7 @@ let user = null;
 const link = "https://reaperclone.onrender.com/";
 const gamenum = "game3";
 
-async function fetchJSON(path,path2,user){
+async function fetchJSON(path,path2){
   const idToken = await user.getIdToken();
   let res = await fetch(link+path2+path, {
     headers: {

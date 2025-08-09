@@ -705,6 +705,16 @@ app.get("/users/:userid", authenticateToken, async(req,res) => {
   return res.json(registered);
 });
 
+app.get("/me", authenticateToken, async (req, res) => {
+  const userId = req.user.uid;
+  try {
+    const username = await getUsernameCached(userId);
+    return res.json({ username });
+  } catch {
+    return res.status(404).json({ error: "User not found" });
+  }
+});
+
 app.post("/game:gameid/usebomb", authenticateToken, async (req, res) => {
   const userId = req.user.uid;
   const gameId = req.params.gameid;
