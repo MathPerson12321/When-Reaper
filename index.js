@@ -847,6 +847,7 @@ app.post("/usercheck", authenticateToken, async (req, res) => {
 app.post("/registeruser", authenticateToken, async(req,res) => {
   const {email:email,username:name,password:password} = req.body;
   const id = req.user.uid;
+  console.log({ email, name, password });
 
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if(!re.test(email)){
