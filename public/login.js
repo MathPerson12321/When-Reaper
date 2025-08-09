@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", async() => {
   const user = await redirectFromLogin();
   if(user){
     document.getElementById("register").style.display = "block";
+    document.getElementById("loginmenu").style.display = "none";
   }
 
   document.getElementById("loginbutton").addEventListener("click", async() => {
@@ -53,6 +54,7 @@ document.addEventListener("DOMContentLoaded", async() => {
 
       if(!users){
         document.getElementById("register").style.display = "block";
+        document.getElementById("loginmenu").style.display = "none";
       }else{
         window.location.replace(link);
       }
@@ -95,6 +97,7 @@ document.addEventListener("DOMContentLoaded", async() => {
 
     const valid = isValid(username);
     if(!valid){
+      document.getElementById("error").innerHTML = "Username must be valid.";
       return;
     }
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -134,6 +137,12 @@ document.addEventListener("DOMContentLoaded", async() => {
       return;
     }
 
+    const valid = isValid(username);
+    if(!valid){
+      document.getElementById("error").innerHTML = "Username must be valid.";
+      return;
+    }
+
     try{
       const result = await signInWithEmailAndPassword(auth,email,password);
       const user = result.user;
@@ -146,12 +155,7 @@ document.addEventListener("DOMContentLoaded", async() => {
       }
 
       const idToken = await user.getIdToken();
-      let registered = await fetchJSON("users/" + user.uid);
-      if(!registered){
-        document.getElementById("register").style.display = "block";
-      }else{
-        window.location.href = "https://reaperclone.onrender.com/";
-      }
+      window.location.href = "https://reaperclone.onrender.com/";
     }catch(e){
       document.getElementById("error").innerHTML = e.message;
     }
