@@ -157,6 +157,7 @@ async function addUser(user, id) {
 }
 
 async function addUserWithPass(user,password,id) {
+  print({user,password,id})
   const existing = await firestore
     .collection("users")
     .where("username","==", user)

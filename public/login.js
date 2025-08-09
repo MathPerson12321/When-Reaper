@@ -110,9 +110,6 @@ document.addEventListener("DOMContentLoaded", async() => {
       const result = await createUserWithEmailAndPassword(auth,email,password);
       const user = result.user;
 
-      await sendEmailVerification(user);
-      document.getElementById("error").innerHTML = "Verification email sent! Please check your inbox.";
-
       const idToken = await user.getIdToken();
   
       const response = await writeJSON("registeruser",{email,username,password},idToken);
@@ -146,14 +143,6 @@ document.addEventListener("DOMContentLoaded", async() => {
     try{
       const result = await signInWithEmailAndPassword(auth,email,password);
       const user = result.user;
-
-      await user.reload();
-      if(!user.emailVerified){
-        document.getElementById("error").innerText = "Please verify your email before logging in.";
-        await auth.signOut();
-        return;
-      }
-
       const idToken = await user.getIdToken();
       window.location.href = "https://reaperclone.onrender.com/";
     }catch(e){
