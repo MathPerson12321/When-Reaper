@@ -145,9 +145,11 @@ document.addEventListener("DOMContentLoaded", async() => {
 
     try{
       const result = await signInWithEmailAndPassword(auth,email,password);
-      const user = result.user;
-      const idToken = await user.getIdToken();
-      window.location.href = "https://reaperclone.onrender.com/";
+      if(result){
+        window.location.href = "https://reaperclone.onrender.com/";
+      }else{
+        document.getElementById("error").innerHTML = "There was an error logging in, maybe your account doesn't exist yet?";
+      }
     }catch(e){
       document.getElementById("error").innerHTML = e.message;
     }
