@@ -887,7 +887,7 @@ app.post("/registeruser", authenticateToken, async(req,res) => {
   return res.status(200).json({allowed:"Good!"});
 });
 
-app.get("/game:gameid/", authenticateToken, (req, res) => {
+app.get("/game:gameid/", (req, res) => {
   const gameid = req.params.gameid;
   res.sendFile(path.join(__dirname,"public","gamepage" + gameid +".html"));
 });
