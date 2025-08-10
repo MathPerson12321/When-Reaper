@@ -1,12 +1,9 @@
 import {checkAuthAndRedirect} from "./authcheck.js";
-import app from './firebase.js';
-import {getAuth} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js";
 
 let data = null;
 let userlastreaps = null;
 let reaps = null;
 let leaderboard = null;
-let username = null;
 let user = null;
 
 const link = "https://reaperclone.onrender.com/";
@@ -194,12 +191,14 @@ function calcTime(){
 }
 
 async function pageLoad(){
-  [data,reaps,userlastreaps,leaderboard] = await Promise.all([
-    fetchJSON("/gamedata", gamenum, user),
-    fetchJSON("/reaps", gamenum, user),
-    fetchJSON("/lastuserreap", gamenum, user),
-    fetchJSON("/leaderboard",gamenum,user)
-  ]);
+  data = fetchJSON("/gamedata",gamenum,user);
+  if(data.starttime < Date.now()){
+    [reaps,userlastreaps,leaderboard] = await Promise.all([
+      fetchJSON("/reaps", gamenum, user),
+      fetchJSON("/lastuserreap", gamenum, user),
+      fetchJSON("/leaderboard",gamenum,user)
+    ]);
+  }
   reaps = Object.values(reaps).sort((a,b) => b.timestamp-a.timestamp);
   makeLeaderboard();
   mostrecentreapdisplay();

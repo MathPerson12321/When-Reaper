@@ -1,6 +1,4 @@
 import {checkAuthAndRedirect} from "./authcheck.js";
-import app from './firebase.js';
-import {getAuth} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js";
 
 let data = null;
 let leaderboard = null;
