@@ -997,7 +997,7 @@ const publicPaths = [
  ];
  
 app.use(async(req, res, next) => {
-  print("using")
+  console.log("using")
   const isAllowed = publicPaths.some((path) => {
      return typeof path ==="string" ? req.path === path : path.test(req.path);
   });
@@ -1009,8 +1009,8 @@ app.use(async(req, res, next) => {
     const data = doc.data()
     const startTimestamp = data.maintenencestart.seconds*1000;
     const endTimestamp = data.maintenenceend.seconds*1000;
-    print(startTimestamp)
-    print(Date.now())
+    console.log(startTimestamp)
+    console.log(Date.now())
     if(Date.now() > startTimestamp && Date.now() < endTimestamp){
       const adminPassword = req.query.admin_password || req.headers['x-admin-password'];
       const correctPassword = process.env.ADMIN_PASSWORD;
