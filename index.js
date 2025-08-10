@@ -990,6 +990,7 @@ app.use(express.static(path.join(__dirname,"public")));
 
 // ------------------ Catch-all 404 ------------------
 const publicPaths = [
+  "",
   "/",
    /^\/game\d+$/,
    /^\/public\//,
