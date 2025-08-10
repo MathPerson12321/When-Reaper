@@ -999,6 +999,7 @@ const publicPaths = [
  
 app.use(async(req, res, next) => {
   console.log("using")
+  console.log(req.path)
   const isAllowed = publicPaths.some((path) => {
      return typeof path ==="string" ? req.path === path : path.test(req.path);
   });
