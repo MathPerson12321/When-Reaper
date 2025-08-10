@@ -1010,7 +1010,7 @@ app.use(async(req, res, next) => {
   });
  
   console.log(req.path)
-  print(isAllowed)
+  console.log(isAllowed)
   if(!isAllowed){
     return res.status(403).json({error:"Forbidden"});
   }else{
