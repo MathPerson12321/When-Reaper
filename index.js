@@ -994,12 +994,11 @@ const publicPaths = [
   "/",
    /^\/game\d+$/,
    /^\/public\//,
-   "/healthz"
+   "/healthz",
+   "/favicon.ico"
  ];
  
 app.use(async(req, res, next) => {
-  console.log("using")
-  console.log(req.path)
   const isAllowed = publicPaths.some((path) => {
      return typeof path ==="string" ? req.path === path : path.test(req.path);
   });
@@ -1011,8 +1010,6 @@ app.use(async(req, res, next) => {
     const data = doc.data()
     const startTimestamp = data.maintenencestart.seconds*1000;
     const endTimestamp = data.maintenenceend.seconds*1000;
-    console.log(startTimestamp)
-    console.log(Date.now())
     if(Date.now() > startTimestamp && Date.now() < endTimestamp){
       const adminPassword = req.query.admin_password || req.headers['x-admin-password'];
       const correctPassword = process.env.ADMIN_PASSWORD;
