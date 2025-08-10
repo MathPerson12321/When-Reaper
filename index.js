@@ -982,9 +982,13 @@ app.get("/maintenence", async (req, res) => {
   const data = doc.data()
   const startTimestamp = data.maintenencestart.seconds*1000;
   const endTimestamp = data.maintenenceend.seconds*1000;
+  return res.json({start:startTimestamp,end:endTimestamp});
 });
 
-app.get('/favicon.ico', (req, res) => res.status(204).end());
+app.get("/favicon.ico", (req, res, next) => {
+  next();
+});
+
 
 // ------------------ Static Middleware ------------------
 
