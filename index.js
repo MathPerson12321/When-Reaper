@@ -11,6 +11,7 @@ import {fileURLToPath} from "url";
 import rateLimit from "express-rate-limit";
 
 import crypto from "crypto";
+import { start } from "repl";
 
 const algorithm = "aes-256-cbc";
 const secretKey = "790fca27d97163865522a306cd29a364b32f8a138e42b373992940fdbfd6bd08"
@@ -976,6 +977,13 @@ app.get("/:gameid/gamedata", async (req, res) => {
   }
 });
 
+app.get("/maintenence", async (req, res) => {
+  const doc = await firestore.collection("settings").doc("maintenence").get();
+  const data = doc.data()
+  const startTimestamp = data.maintenencestart.seconds*1000;
+  const endTimestamp = data.maintenenceend.seconds*1000;
+});
+
 // ------------------ Static Middleware ------------------
 
 app.use(express.static(path.join(__dirname,"public")));
@@ -985,18 +993,46 @@ const publicPaths = [
   "/",
    /^\/game\d+$/,
    /^\/public\//,
+   "/healthz"
  ];
  
- app.use((req, res, next) => {
-   const isAllowed = publicPaths.some((path) => {
+app.use(async(req, res, next) => {
+  const isAllowed = publicPaths.some((path) => {
      return typeof path ==="string" ? req.path === path : path.test(req.path);
-   });
+  });
  
-   if (!isAllowed && req.method !=="POST" && req.path !=="/healthz") {
-     return res.status(403).json({error:"Forbidden" });
-   }
-   next();
- });
+  if(!isAllowed){
+    return res.status(403).json({error:"Forbidden"});
+  }else{
+    const doc = await firestore.collection("settings").doc("maintenence").get();
+    const data = doc.data()
+    const startTimestamp = data.maintenencestart.seconds*1000;
+    const endTimestamp = data.maintenenceend.seconds*1000;
+    if(Date.now() > startTimestamp && Date.now() < endTimestamp){
+
+      const adminPassword = req.query.admin_password || req.headers['x-admin-password'];
+      const correctPassword = process.env.ADMIN_PASSWORD;
+
+      if(adminPassword !== correctPassword){
+        if(req.path !== "/maintenance"){
+          return res.redirect("/maintenance");
+        }else{
+          return res.json({
+            start: startTimestamp,
+            end: endTimestamp
+          });
+        }
+      }else{
+        return next();
+      }
+    }else{
+      if(req.path === "/maintenence"){
+        return res.redirect("/");
+      }
+    }
+    return next();
+  }
+});
 
 app.use((req, res) => {
   console.log(`[SERVER] 404 Not Found for ${req.method} ${req.originalUrl}`);
