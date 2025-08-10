@@ -1009,6 +1009,8 @@ app.use(async(req, res, next) => {
      return typeof path ==="string" ? req.path === path : path.test(req.path);
   });
  
+  console.log(req.path)
+  print(isAllowed)
   if(!isAllowed){
     return res.status(403).json({error:"Forbidden"});
   }else{
