@@ -984,6 +984,8 @@ app.get("/maintenence", async (req, res) => {
   const endTimestamp = data.maintenenceend.seconds*1000;
 });
 
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 // ------------------ Static Middleware ------------------
 
 app.use(express.static(path.join(__dirname,"public")));
