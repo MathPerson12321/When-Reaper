@@ -1005,11 +1005,13 @@ const publicPaths = [
  ];
  
 app.use(async(req, res, next) => {
+  console.log(req.path)
   const isAllowed = publicPaths.some((path) => {
+    console.log("[LOG] Checking against: ", path);
      return typeof path ==="string" ? req.path === path : path.test(req.path);
   });
  
-  console.log(req.path)
+  console.log("running")
   console.log(isAllowed)
   if(!isAllowed){
     return res.status(403).json({error:"Forbidden"});
