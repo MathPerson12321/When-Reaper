@@ -1006,7 +1006,7 @@ app.use(async(req, res, next) => {
   });
 
   if(!isAllowed){
-    return res.status(403).json({error:"Forbidden"});
+    return res.redirect("/");
   }else{
     const doc = await firestore.collection("settings").doc("maintenence").get();
     const data = doc.data()
