@@ -992,6 +992,17 @@ app.get("/favicon.ico", (req, res, next) => {
 // ------------------ Catch-all 404 ------------------
 const publicPaths = [
   "",
+  "/howtoplay.js",
+  "/maintenence.js",
+  "/login.js",
+  "/lobby.js",
+  "/firebase.js",
+  "/display.js",
+  "/display2.js",
+  "/display3.js",
+  "/chatcore.js",
+  "/authcheck.js",
+  "/announcements.js",
   "/",
    /^\/game\d+$/,
    /^\/public\//,
