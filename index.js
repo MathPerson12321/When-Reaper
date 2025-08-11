@@ -989,11 +989,6 @@ app.get("/favicon.ico", (req, res, next) => {
   next();
 });
 
-
-// ------------------ Static Middleware ------------------
-
-app.use(express.static(path.join(__dirname,"public")));
-
 // ------------------ Catch-all 404 ------------------
 const publicPaths = [
   "",
@@ -1044,6 +1039,10 @@ app.use(async(req, res, next) => {
     return next();
   }
 });
+
+// ------------------ Static Middleware ------------------
+
+app.use(express.static(path.join(__dirname,"public")));
 
 app.use((req, res) => {
   console.log(`[SERVER] 404 Not Found for ${req.method} ${req.originalUrl}`);
