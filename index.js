@@ -1015,7 +1015,7 @@ app.use(async(req, res, next) => {
     console.log("[LOG] Checking against: ", path);
      return typeof path ==="string" ? req.path === path : path.test(req.path);
   });
-
+  console.log(req.path)
   if(!isAllowed){
     return res.redirect("/");
   }else{
@@ -1023,6 +1023,9 @@ app.use(async(req, res, next) => {
     const data = doc.data()
     const startTimestamp = data.maintenencestart.seconds*1000;
     const endTimestamp = data.maintenenceend.seconds*1000;
+    console.log(Date.now())
+    console.log(startTimestamp)
+    console.log(endTimestamp)
     if(Date.now() > startTimestamp && Date.now() < endTimestamp){
       const adminPassword = req.query.admin_password || req.headers['x-admin-password'];
       const correctPassword = process.env.ADMIN_PASSWORD;
