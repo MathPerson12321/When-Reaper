@@ -736,7 +736,10 @@ app.use(async(req, res, next) => {
     const endTimestamp = data.maintenenceend.seconds*1000;
     if(Date.now() > startTimestamp && Date.now() < endTimestamp){
       const adminPassword = req.query.admin_password || req.headers['x-admin-password'];
-      const correctPassword = process.env.ADMIN_PASSWORD;
+      const correctPassword = process.env.ADMINPASSWORD;
+      console.log(correctPassword)
+      console.log(adminPassword)
+      console.log(correctPassword == adminPassword)
       if(adminPassword !== correctPassword || adminPassword == undefined || correctPassword == undefined){
         if(req.path !== "/maintenance" && req.path !== "/maintenancedata" && req.path !== "/healthz"){
           return res.redirect("/maintenance");
@@ -747,6 +750,9 @@ app.use(async(req, res, next) => {
             return res.json(await getMaintenanceData());
           }
         }
+      }else{
+        //Password right
+        return next();
       }
     }else{
       if(req.path === "/maintenance"){
