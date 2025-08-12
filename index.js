@@ -500,7 +500,7 @@ async function reap(gamenum,userId,isfreereap){
     const reaps = await loadReaps(gamenum);
     const leaderboard = await loadLeaderboard(gamenum);
 
-    const userLastReap = lastUserReaps || 0;
+    const userLastReap = lastUserReap || 0;
     if(!isfreereap){
       if (now - userLastReap < data.cooldown) {
         const waitTime = data.cooldown - (now - userLastReap);
