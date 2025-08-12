@@ -683,12 +683,6 @@ wss.on("connection", (ws) => {
 
 
 // ------------------ Catch-all 404 ------------------
-app.use(async (req, res, next) => {
-  console.log("🔥 Middleware triggered for path:", req.path);
-  next();
-});
-
-
 const publicPaths = [
   "",
   "/howtoplay.js",
@@ -729,6 +723,8 @@ app.use(async(req, res, next) => {
       if(adminPassword !== correctPassword || adminPassword == undefined || correctPassword == undefined){
         if(req.path !== "/maintenance"){
           return res.redirect("/maintenance");
+        }else{
+          return res.sendFile(path.join(__dirname,"public","maintenence.html"));
         }
       }
     }else{
@@ -761,9 +757,7 @@ app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname,"public","login.html"));
 });
 
-app.get("/maintenance", (req, res) => {
-  res.sendFile(path.join(__dirname,"public","maintenence.html"));
-});
+//Maintenance is in app.use
 
 app.get("/games", authenticateToken, async (req,res) => {
   const games = await getGames();
