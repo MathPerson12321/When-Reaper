@@ -423,7 +423,7 @@ async function freeReapBonus(user,gamenum,increasecount)
   let reapspass = await datapass.once("value");
   reapspass = reapspass.val();
   rate = rate.val();
-  let bonus = rate + (rate*(Math.log(rate*reaps+1)));
+  let bonus = rate + (rate*(Math.log(rate*reapspass+1)));
   const rand = Math.random() * 100;
   if(rand < bonus){
     datapass.set(0);
