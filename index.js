@@ -1025,8 +1025,8 @@ app.use(async(req, res, next) => {
   }else{
     const doc = await firestore.collection("settings").doc("maintenance").get();
     const data = doc.data()
-    const startTimestamp = data.maintenancestart.seconds*1000;
-    const endTimestamp = data.maintenanceend.seconds*1000;
+    const startTimestamp = data.maintenencestart.seconds*1000;
+    const endTimestamp = data.maintenenceend.seconds*1000;
     console.log(Date.now())
     console.log(startTimestamp)
     console.log(endTimestamp)
