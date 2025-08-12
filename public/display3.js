@@ -192,7 +192,7 @@ function calcTime(){
 }
 
 async function pageLoad(){
-  data = fetchJSON("/gamedata",gamenum,user);
+  data = await fetchJSON("/gamedata",gamenum,user);
   if(data.starttime < Date.now()){
     [reaps,userlastreaps,leaderboard] = await Promise.all([
       fetchJSON("/reaps", gamenum, user),
@@ -314,8 +314,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("wait").remove();
       }
     }else{
-      console.log(data.starttime)
-      console.log(now)
       if(data.starttime > now){
         const res = "Game starts in " + timetoseconds(data.starttime-now);
         document.getElementById("timeleft").innerHTML = res;
