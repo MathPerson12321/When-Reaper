@@ -696,25 +696,13 @@ app.get("/maintenancedata", async (req, res) => {
 
 const publicPaths = [
   "",
-  "/howtoplay.js",
-  "/maintenance.js",
-  "/login.js",
-  "/lobby.js",
-  "/firebase.js",
-  "/display.js",
-  "/display2.js",
-  "/display3.js",
-  "/chatcore.js",
-  "/authcheck.js",
-  "/announcements.js",
   "/",
    /^\/game\d+$/,
    /^\/public\//,
    "/healthz",
-   "/favicon.ico",
    "/maintenance",
    "/maintenancedata"
- ];
+];
 
 app.use(express.static(path.join(__dirname,"public")));
 
@@ -723,12 +711,11 @@ app.get("/healthz", (req, res) => {
 });
  
 app.use(async(req, res, next) => {
-  /*const isAllowed = publicPaths.some((path) => {
+  const isAllowed = publicPaths.some((path) => {
      return typeof path ==="string" ? req.path === path : path.test(req.path);
-  });*/
-  const isAllowed = true
+  });
   if(!isAllowed){
-    return res.redirect("/");
+    return next();
   }else{
     const doc = await firestore.collection("settings").doc("maintenence").get();
     const data = doc.data()
