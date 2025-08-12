@@ -683,6 +683,14 @@ wss.on("connection", (ws) => {
 
 
 // ------------------ Catch-all 404 ------------------
+app.get("/maintenancedata", async (req, res) => {
+  const doc = await firestore.collection("settings").doc("maintenence").get();
+  const data = doc.data()
+  const startTimestamp = data.maintenancestart.seconds*1000;
+  const endTimestamp = data.maintenanceend.seconds*1000;
+  return res.json({start:startTimestamp,end:endTimestamp});
+});
+
 const publicPaths = [
   "",
   "/howtoplay.js",
@@ -742,13 +750,6 @@ app.use(async(req, res, next) => {
     }
     return next();
   }
-});
-
-// ------------------ Static Middleware ------------------
-
-app.use((req, res) => {
-  console.log(`[SERVER] 404 Not Found for ${req.method} ${req.originalUrl}`);
-  return res.status(404).send("Not Found");
 });
 
 // ------------------ API Routes ------------------
@@ -1045,16 +1046,15 @@ app.get("/:gameid/gamedata", async (req, res) => {
   }
 });
 
-app.get("/maintenancedata", async (req, res) => {
-  const doc = await firestore.collection("settings").doc("maintenence").get();
-  const data = doc.data()
-  const startTimestamp = data.maintenancestart.seconds*1000;
-  const endTimestamp = data.maintenanceend.seconds*1000;
-  return res.json({start:startTimestamp,end:endTimestamp});
-});
-
 app.get("/favicon.ico", (req, res, next) => {
   next();
+});
+
+// ------------------ Static Middleware ------------------
+
+app.use((req, res) => {
+  console.log(`[SERVER] 404 Not Found for ${req.method} ${req.originalUrl}`);
+  return res.status(404).send("Not Found");
 });
 
 // ------------------ Start Server ------------------ 
