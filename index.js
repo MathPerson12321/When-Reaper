@@ -419,7 +419,7 @@ async function freeReapBonus(user,gamenum,increasecount)
 {
   //Activated when a bonus or divider is activated
   let rate = await db.ref(`game${gamenum}/special/freereaps/rate`).once("value");
-  reaps = reaps.val();
+  let reaps = reaps.val();
   rate = rate.val();
   let bonus = rate + (rate*(Math.log(rate*reaps+1)));
   const rand = Math.random() * 100;
