@@ -1013,6 +1013,8 @@ const publicPaths = [
    "/healthz",
    "/favicon.ico"
  ];
+
+app.use(express.static(path.join(__dirname,"public")));
  
 app.use(async(req, res, next) => {
   const isAllowed = publicPaths.some((path) => {
@@ -1056,8 +1058,6 @@ app.use(async(req, res, next) => {
 });
 
 // ------------------ Static Middleware ------------------
-
-app.use(express.static(path.join(__dirname,"public")));
 
 app.use((req, res) => {
   console.log(`[SERVER] 404 Not Found for ${req.method} ${req.originalUrl}`);
