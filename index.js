@@ -723,7 +723,7 @@ app.use(async(req, res, next) => {
       const adminPassword = req.query.admin_password || req.headers['x-admin-password'];
       const correctPassword = process.env.ADMIN_PASSWORD;
       if(adminPassword !== correctPassword || adminPassword == undefined || correctPassword == undefined){
-        if(req.path !== "/maintenance" || req.path !== "/maintenancedata"){
+        if(req.path !== "/maintenance" || req.path !== "/maintenancedata" || req.path !== "/healthz"){
           return res.redirect("/maintenance");
         }else{
           return res.sendFile(path.join(__dirname,"public","maintenence.html"));
