@@ -1033,6 +1033,8 @@ app.use(async(req, res, next) => {
     if(Date.now() > startTimestamp && Date.now() < endTimestamp){
       const adminPassword = req.query.admin_password || req.headers['x-admin-password'];
       const correctPassword = process.env.ADMIN_PASSWORD;
+      console.log(adminPassword)
+      console.log(correctPassword)
 
       if(adminPassword !== correctPassword){
         if(req.path !== "/maintenance"){
