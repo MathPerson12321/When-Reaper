@@ -706,6 +706,10 @@ const publicPaths = [
  ];
 
 app.use(express.static(path.join(__dirname,"public")));
+
+app.get("/healthz", (req, res) => {
+  res.status(200).send("OK");
+});
  
 app.use(async(req, res, next) => {
   /*const isAllowed = publicPaths.some((path) => {
@@ -746,10 +750,6 @@ app.use((req, res) => {
 });
 
 // ------------------ API Routes ------------------
-
-app.get("/healthz", (req, res) => {
-  res.status(200).send("OK");
-});
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname,"public","lobby.html"));
