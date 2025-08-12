@@ -737,10 +737,7 @@ app.use(async(req, res, next) => {
     if(Date.now() > startTimestamp && Date.now() < endTimestamp){
       const adminPassword = req.query.admin_password || req.headers['x-admin-password'];
       const correctPassword = process.env.ADMINPASSWORD;
-      console.log(correctPassword)
-      console.log(adminPassword)
-      console.log(correctPassword == adminPassword)
-      if(adminPassword !== correctPassword || adminPassword == undefined || correctPassword == undefined){
+      if(adminPassword != correctPassword || adminPassword == undefined || correctPassword == undefined){
         if(req.path !== "/maintenance" && req.path !== "/maintenancedata" && req.path !== "/healthz"){
           return res.redirect("/maintenance");
         }else{
