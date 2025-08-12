@@ -695,6 +695,10 @@ app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname,"public","login.html"));
 });
 
+app.get("/maintenance", (req, res) => {
+  res.sendFile(path.join(__dirname,"public","maintenence.html"));
+});
+
 app.get("/games", authenticateToken, async (req,res) => {
   const games = await getGames();
   return res.json(games);
@@ -977,11 +981,11 @@ app.get("/:gameid/gamedata", async (req, res) => {
   }
 });
 
-app.get("/maintenence", async (req, res) => {
+app.get("/maintenancedata", async (req, res) => {
   const doc = await firestore.collection("settings").doc("maintenence").get();
   const data = doc.data()
-  const startTimestamp = data.maintenencestart.seconds*1000;
-  const endTimestamp = data.maintenenceend.seconds*1000;
+  const startTimestamp = data.maintenancestart.seconds*1000;
+  const endTimestamp = data.maintenanceend.seconds*1000;
   return res.json({start:startTimestamp,end:endTimestamp});
 });
 
@@ -993,7 +997,7 @@ app.get("/favicon.ico", (req, res, next) => {
 const publicPaths = [
   "",
   "/howtoplay.js",
-  "/maintenence.js",
+  "/maintenance.js",
   "/login.js",
   "/lobby.js",
   "/firebase.js",
@@ -1019,10 +1023,10 @@ app.use(async(req, res, next) => {
   if(!isAllowed){
     return res.redirect("/");
   }else{
-    const doc = await firestore.collection("settings").doc("maintenence").get();
+    const doc = await firestore.collection("settings").doc("maintenance").get();
     const data = doc.data()
-    const startTimestamp = data.maintenencestart.seconds*1000;
-    const endTimestamp = data.maintenenceend.seconds*1000;
+    const startTimestamp = data.maintenancestart.seconds*1000;
+    const endTimestamp = data.maintenanceend.seconds*1000;
     console.log(Date.now())
     console.log(startTimestamp)
     console.log(endTimestamp)
@@ -1043,7 +1047,7 @@ app.use(async(req, res, next) => {
         return next();
       }
     }else{
-      if(req.path === "/maintenence"){
+      if(req.path === "/maintenance"){
         return res.redirect("/");
       }
     }

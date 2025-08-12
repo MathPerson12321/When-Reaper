@@ -1,5 +1,5 @@
 window.addEventListener("DOMContentLoaded", async () => {
-    const response = await fetch("/maintenance");
+    const response = await fetch("/maintenancedata");
 
     if(response.ok){
         const data = await response.json();
