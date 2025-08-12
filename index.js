@@ -647,7 +647,7 @@ async function reap(gamenum,userId,isfreereap){
     }
 
     await saveReaps(gamenum, reaps);
-    await saveLastUserReaps(gamenum, lastUserReaps);
+    await saveLastUserReaps(gamenum, lastUserReap);
     await saveLeaderboard(gamenum, leaderboard);
 
     broadcast({type:"reap", reap:reapEntry2});
