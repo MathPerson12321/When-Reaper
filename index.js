@@ -716,7 +716,6 @@ app.use(async(req, res, next) => {
   const isAllowed = publicPaths.some((path) => {
      return typeof path ==="string" ? req.path === path : path.test(req.path);
   });
-  console.log(req.path)
   if(!isAllowed){
     return res.redirect("/");
   }else{
@@ -730,16 +729,10 @@ app.use(async(req, res, next) => {
       if(adminPassword !== correctPassword || adminPassword == undefined || correctPassword == undefined){
         if(req.path !== "/maintenance"){
           return res.redirect("/maintenance");
-        }else{
-          return res.json({
-            start: startTimestamp,
-            end: endTimestamp
-          });
         }
       }
     }else{
       if(req.path === "/maintenance"){
-        console.log("🔁 Redirecting back to / (not in maintenance)");
         return res.redirect("/");
       }
     }
