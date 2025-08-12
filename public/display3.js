@@ -314,7 +314,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("wait").remove();
       }
     }else{
-      console.log(data.starttime > now)
+      console.log(data.starttime)
+      console.log(now)
       if(data.starttime > now){
         const res = "Game starts in " + timetoseconds(data.starttime-now);
         document.getElementById("timeleft").innerHTML = res;
