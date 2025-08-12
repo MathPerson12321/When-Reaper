@@ -1,5 +1,6 @@
+const link = "https://reaperclone.onrender.com/";
 window.addEventListener("DOMContentLoaded", async () => {
-    const response = await fetch("/maintenancedata");
+    const response = await fetch(link+"maintenancedata");
 
     if(response.ok){
         const data = await response.json();
