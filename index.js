@@ -708,8 +708,6 @@ const publicPaths = [
    "/healthz",
    "/favicon.ico"
  ];
-
-app.use(express.static(path.join(__dirname,"public")));
  
 app.use(async(req, res, next) => {
   const isAllowed = publicPaths.some((path) => {
@@ -756,6 +754,8 @@ app.use(async(req, res, next) => {
     return next();
   }
 });
+
+app.use(express.static(path.join(__dirname,"public")));
 
 // ------------------ Static Middleware ------------------
 
