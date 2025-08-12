@@ -691,7 +691,7 @@ async function getMaintenanceData(){
   return {start:startTimestamp,end:endTimestamp};
 }
 app.get("/maintenancedata", async (req, res) => {
-  return res.json(getMaintenanceData());
+  return res.json(await getMaintenanceData());
 });
 
 const publicPaths = [
@@ -744,7 +744,7 @@ app.use(async(req, res, next) => {
           if(req.path !== "/maintenancedata"){
             return res.sendFile(path.join(__dirname,"public","maintenence.html"));
           }else{
-            return res.json(getMaintenanceData());
+            return res.json(await getMaintenanceData());
           }
         }
       }
