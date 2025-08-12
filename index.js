@@ -733,9 +733,12 @@ app.use(async(req, res, next) => {
       console.log(req.path)
       if(adminPassword !== correctPassword || adminPassword == undefined){
         console.log("what")
+        console.log(req.path)
         if(req.path !== "/maintenance"){
           console.log("maintain")
-          return res.redirect("/maintenance");
+          res.redirect("/maintenance");
+          console.log("sent!")
+          return;
         }else{
           return res.json({
             start: startTimestamp,
