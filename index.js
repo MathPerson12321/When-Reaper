@@ -683,12 +683,15 @@ wss.on("connection", (ws) => {
 
 
 // ------------------ Catch-all 404 ------------------
-app.get("/maintenancedata", async (req, res) => {
+async function getMaintenanceData(){
   const doc = await firestore.collection("settings").doc("maintenence").get();
   const data = doc.data()
   const startTimestamp = data.maintenancestart.seconds*1000;
   const endTimestamp = data.maintenanceend.seconds*1000;
-  return res.json({start:startTimestamp,end:endTimestamp});
+  return {start:startTimestamp,end:endTimestamp};
+}
+app.get("/maintenancedata", async (req, res) => {
+  return res.json(getMaintenanceData());
 });
 
 const publicPaths = [
@@ -740,6 +743,8 @@ app.use(async(req, res, next) => {
         }else{
           if(req.path !== "/maintenancedata"){
             return res.sendFile(path.join(__dirname,"public","maintenence.html"));
+          }else{
+            return res.json(getMaintenanceData());
           }
         }
       }
