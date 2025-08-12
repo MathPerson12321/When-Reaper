@@ -708,7 +708,7 @@ const publicPaths = [
 app.use(express.static(path.join(__dirname,"public")));
 
 app.get("/healthz", (req, res) => {
-  res.status(200).send("OK");
+  return res.status(200).send("OK");
 });
  
 app.use(async(req, res, next) => {
@@ -730,7 +730,9 @@ app.use(async(req, res, next) => {
         if(req.path !== "/maintenance" && req.path !== "/maintenancedata" && req.path !== "/healthz"){
           return res.redirect("/maintenance");
         }else{
-          return res.sendFile(path.join(__dirname,"public","maintenence.html"));
+          if(req.path !== "/maintenancedata"){
+            return res.sendFile(path.join(__dirname,"public","maintenence.html"));
+          }
         }
       }
     }else{
