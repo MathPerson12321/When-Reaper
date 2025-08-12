@@ -418,18 +418,19 @@ async function addFreeReap(user, gamenum) {
 async function freeReapBonus(user,gamenum,increasecount)
 {
   //Activated when a bonus or divider is activated
+  let datapass = await db.ref(`game${gamenum}/special/freereaps/bonuspassed`);
   let rate = await db.ref(`game${gamenum}/special/freereaps/rate`).once("value");
-  let reaps = reaps.val();
+  let reapspass = await datapass.once("value");
+  reapspass = reapspass.val();
   rate = rate.val();
   let bonus = rate + (rate*(Math.log(rate*reaps+1)));
   const rand = Math.random() * 100;
   if(rand < bonus){
-    await db.ref(`game${gamenum}/special/freereaps/bonuspassed`).set(0);
+    datapass.set(0);
     let content = await addFreeReap(user,gamenum);
     return [true,content];
   }else if(increasecount){
-    let reapspass = await db.ref(`game${gamenum}/special/freereaps/bonuspassed`).once("value");
-    await db.ref(`game${gamenum}/special/freereaps/bonuspassed`).set(reapspass.val()+1);
+    datapass.set(reapspass.val()+1);
     return [false];
   }
   return [false];
@@ -623,7 +624,7 @@ async function reap(gamenum,userId,isfreereap){
     };
 
     reaps[reapNumber] = reapEntry;
-    lastUserReaps[username] = now;
+    lastUserReap[username] = now;
 
     if (!leaderboard[finaluser]) {
       leaderboard[finaluser] = {time: 0, reapcount: 0};
