@@ -681,6 +681,86 @@ wss.on("connection", (ws) => {
   });
 });
 
+
+// ------------------ Catch-all 404 ------------------
+app.use(async (req, res, next) => {
+  console.log("🔥 Middleware triggered for path:", req.path);
+  next();
+});
+
+
+const publicPaths = [
+  "",
+  "/howtoplay.js",
+  "/maintenance.js",
+  "/login.js",
+  "/lobby.js",
+  "/firebase.js",
+  "/display.js",
+  "/display2.js",
+  "/display3.js",
+  "/chatcore.js",
+  "/authcheck.js",
+  "/announcements.js",
+  "/",
+   /^\/game\d+$/,
+   /^\/public\//,
+   "/healthz",
+   "/favicon.ico"
+ ];
+
+app.use(express.static(path.join(__dirname,"public")));
+ 
+app.use(async(req, res, next) => {
+  const isAllowed = publicPaths.some((path) => {
+    console.log("[LOG] Checking against: ", path);
+     return typeof path ==="string" ? req.path === path : path.test(req.path);
+  });
+  console.log(req.path)
+  if(!isAllowed){
+    return res.redirect("/");
+  }else{
+    const doc = await firestore.collection("settings").doc("maintenence").get();
+    const data = doc.data()
+    const startTimestamp = data.maintenencestart.seconds*1000;
+    const endTimestamp = data.maintenenceend.seconds*1000;
+    console.log(Date.now())
+    console.log(startTimestamp)
+    console.log(endTimestamp)
+    if(Date.now() > startTimestamp && Date.now() < endTimestamp){
+      const adminPassword = req.query.admin_password || req.headers['x-admin-password'];
+      const correctPassword = process.env.ADMIN_PASSWORD;
+      console.log(req.path)
+      if(adminPassword !== correctPassword || adminPassword == undefined){
+        console.log("what")
+        if(req.path !== "/maintenance"){
+          console.log("maintain")
+          return res.redirect("/maintenance");
+        }else{
+          return res.json({
+            start: startTimestamp,
+            end: endTimestamp
+          });
+        }
+      }else{
+        return next();
+      }
+    }else{
+      if(req.path === "/maintenance"){
+        return res.redirect("/");
+      }
+    }
+    return next();
+  }
+});
+
+// ------------------ Static Middleware ------------------
+
+app.use((req, res) => {
+  console.log(`[SERVER] 404 Not Found for ${req.method} ${req.originalUrl}`);
+  return res.status(404).send("Not Found");
+});
+
 // ------------------ API Routes ------------------
 
 app.get("/healthz", (req, res) => {
@@ -991,85 +1071,6 @@ app.get("/maintenancedata", async (req, res) => {
 
 app.get("/favicon.ico", (req, res, next) => {
   next();
-});
-
-// ------------------ Catch-all 404 ------------------
-app.use(async (req, res, next) => {
-  console.log("🔥 Middleware triggered for path:", req.path);
-  next();
-});
-
-
-const publicPaths = [
-  "",
-  "/howtoplay.js",
-  "/maintenance.js",
-  "/login.js",
-  "/lobby.js",
-  "/firebase.js",
-  "/display.js",
-  "/display2.js",
-  "/display3.js",
-  "/chatcore.js",
-  "/authcheck.js",
-  "/announcements.js",
-  "/",
-   /^\/game\d+$/,
-   /^\/public\//,
-   "/healthz",
-   "/favicon.ico"
- ];
-
-app.use(express.static(path.join(__dirname,"public")));
- 
-app.use(async(req, res, next) => {
-  const isAllowed = publicPaths.some((path) => {
-    console.log("[LOG] Checking against: ", path);
-     return typeof path ==="string" ? req.path === path : path.test(req.path);
-  });
-  console.log(req.path)
-  if(!isAllowed){
-    return res.redirect("/");
-  }else{
-    const doc = await firestore.collection("settings").doc("maintenence").get();
-    const data = doc.data()
-    const startTimestamp = data.maintenencestart.seconds*1000;
-    const endTimestamp = data.maintenenceend.seconds*1000;
-    console.log(Date.now())
-    console.log(startTimestamp)
-    console.log(endTimestamp)
-    if(Date.now() > startTimestamp && Date.now() < endTimestamp){
-      const adminPassword = req.query.admin_password || req.headers['x-admin-password'];
-      const correctPassword = process.env.ADMIN_PASSWORD;
-      console.log(req.path)
-      if(adminPassword !== correctPassword || adminPassword == undefined){
-        console.log("what")
-        if(req.path !== "/maintenance"){
-          console.log("maintain")
-          return res.redirect("/maintenance");
-        }else{
-          return res.json({
-            start: startTimestamp,
-            end: endTimestamp
-          });
-        }
-      }else{
-        return next();
-      }
-    }else{
-      if(req.path === "/maintenance"){
-        return res.redirect("/");
-      }
-    }
-    return next();
-  }
-});
-
-// ------------------ Static Middleware ------------------
-
-app.use((req, res) => {
-  console.log(`[SERVER] 404 Not Found for ${req.method} ${req.originalUrl}`);
-  return res.status(404).send("Not Found");
 });
 
 // ------------------ Start Server ------------------ 
