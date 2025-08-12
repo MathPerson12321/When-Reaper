@@ -1023,9 +1023,8 @@ app.use(async(req, res, next) => {
   if(!isAllowed){
     return res.redirect("/");
   }else{
-    const doc = await firestore.collection("settings").doc("maintenance").get();
+    const doc = await firestore.collection("settings").doc("maintenence").get();
     const data = doc.data()
-    console.log(data)
     const startTimestamp = data.maintenencestart.seconds*1000;
     const endTimestamp = data.maintenenceend.seconds*1000;
     console.log(Date.now())
