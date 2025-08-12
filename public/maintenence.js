@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", async() => {
         
         // Display the maintenance details on the page
         document.getElementById("maintenance-status").innerHTML = `
-        Maintenance started at ${start} and ends at ${end}.
+        <b>Maintenance started at ${start} and ends at ${end}.</b>
         `;
     }
 });
