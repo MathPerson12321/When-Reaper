@@ -706,7 +706,8 @@ const publicPaths = [
    /^\/game\d+$/,
    /^\/public\//,
    "/healthz",
-   "/favicon.ico"
+   "/favicon.ico",
+   "/maintenance"
  ];
  
 app.use(async(req, res, next) => {
