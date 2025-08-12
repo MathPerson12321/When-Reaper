@@ -701,15 +701,17 @@ const publicPaths = [
    /^\/public\//,
    "/healthz",
    "/favicon.ico",
-   "/maintenance"
+   "/maintenance",
+   "/maintenancedata"
  ];
 
 app.use(express.static(path.join(__dirname,"public")));
  
 app.use(async(req, res, next) => {
-  const isAllowed = publicPaths.some((path) => {
+  /*const isAllowed = publicPaths.some((path) => {
      return typeof path ==="string" ? req.path === path : path.test(req.path);
-  });
+  });*/
+  const isAllowed = true
   if(!isAllowed){
     return res.redirect("/");
   }else{
