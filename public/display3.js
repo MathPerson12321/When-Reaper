@@ -199,8 +199,8 @@ async function pageLoad(){
       fetchJSON("/lastuserreap", gamenum, user),
       fetchJSON("/leaderboard",gamenum,user)
     ]);
+    reaps = Object.values(reaps).sort((a,b) => b.timestamp-a.timestamp);
   }
-  reaps = Object.values(reaps).sort((a,b) => b.timestamp-a.timestamp);
   makeLeaderboard();
   mostrecentreapdisplay();
 }
