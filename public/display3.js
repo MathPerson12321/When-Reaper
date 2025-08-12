@@ -200,9 +200,9 @@ async function pageLoad(){
       fetchJSON("/leaderboard",gamenum,user)
     ]);
     reaps = Object.values(reaps).sort((a,b) => b.timestamp-a.timestamp);
+    makeLeaderboard();
+    mostrecentreapdisplay();
   }
-  makeLeaderboard();
-  mostrecentreapdisplay();
 }
 
 document.addEventListener("click", async (e) => {
