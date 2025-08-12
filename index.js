@@ -709,10 +709,11 @@ const publicPaths = [
    "/favicon.ico",
    "/maintenance"
  ];
+
+app.use(express.static(path.join(__dirname,"public")));
  
 app.use(async(req, res, next) => {
   const isAllowed = publicPaths.some((path) => {
-    console.log("[LOG] Checking against: ", path);
      return typeof path ==="string" ? req.path === path : path.test(req.path);
   });
   console.log(req.path)
@@ -723,20 +724,12 @@ app.use(async(req, res, next) => {
     const data = doc.data()
     const startTimestamp = data.maintenencestart.seconds*1000;
     const endTimestamp = data.maintenenceend.seconds*1000;
-    console.log(Date.now())
-    console.log(startTimestamp)
-    console.log(endTimestamp)
     if(Date.now() > startTimestamp && Date.now() < endTimestamp){
       const adminPassword = req.query.admin_password || req.headers['x-admin-password'];
       const correctPassword = process.env.ADMIN_PASSWORD;
-      console.log(req.path)
       if(adminPassword !== correctPassword || adminPassword == undefined || correctPassword == undefined){
-        console.log("what")
-        console.log(req.path)
         if(req.path !== "/maintenance"){
-          console.log("maintain")
           return res.redirect("/maintenance");
-          console.log("sent!")
         }else{
           return res.json({
             start: startTimestamp,
@@ -753,8 +746,6 @@ app.use(async(req, res, next) => {
     return next();
   }
 });
-
-app.use(express.static(path.join(__dirname,"public")));
 
 // ------------------ Static Middleware ------------------
 
