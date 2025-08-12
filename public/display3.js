@@ -5,6 +5,7 @@ let userlastreaps = null;
 let reaps = null;
 let leaderboard = null;
 let user = null;
+let username = null;
 
 const link = "https://reaperclone.onrender.com/";
 const gamenum = "game3";

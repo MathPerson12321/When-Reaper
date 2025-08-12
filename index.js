@@ -710,9 +710,9 @@ app.get("/me", authenticateToken, async (req, res) => {
   const userId = req.user.uid;
   try {
     const username = await getUsernameCached(userId);
-    return res.json({ username });
+    return res.json({username});
   } catch {
-    return res.status(404).json({ error: "User not found" });
+    return res.status(404).json({error: "User not found"});
   }
 });
 
