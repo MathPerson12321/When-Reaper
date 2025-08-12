@@ -994,6 +994,12 @@ app.get("/favicon.ico", (req, res, next) => {
 });
 
 // ------------------ Catch-all 404 ------------------
+app.use(async (req, res, next) => {
+  console.log("🔥 Middleware triggered for path:", req.path);
+  next();
+});
+
+
 const publicPaths = [
   "",
   "/howtoplay.js",
