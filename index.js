@@ -729,25 +729,23 @@ app.use(async(req, res, next) => {
       const adminPassword = req.query.admin_password || req.headers['x-admin-password'];
       const correctPassword = process.env.ADMIN_PASSWORD;
       console.log(req.path)
-      if(adminPassword !== correctPassword || adminPassword == undefined){
+      if(adminPassword !== correctPassword || adminPassword == undefined || correctPassword == undefined){
         console.log("what")
         console.log(req.path)
         if(req.path !== "/maintenance"){
           console.log("maintain")
-          res.redirect("/maintenance");
+          return res.redirect("/maintenance");
           console.log("sent!")
-          return;
         }else{
           return res.json({
             start: startTimestamp,
             end: endTimestamp
           });
         }
-      }else{
-        return next();
       }
     }else{
       if(req.path === "/maintenance"){
+        console.log("🔁 Redirecting back to / (not in maintenance)");
         return res.redirect("/");
       }
     }
