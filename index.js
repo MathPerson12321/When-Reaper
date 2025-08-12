@@ -1035,9 +1035,11 @@ app.use(async(req, res, next) => {
     if(Date.now() > startTimestamp && Date.now() < endTimestamp){
       const adminPassword = req.query.admin_password || req.headers['x-admin-password'];
       const correctPassword = process.env.ADMIN_PASSWORD;
-
+      console.log(req.path)
       if(adminPassword !== correctPassword || adminPassword == undefined){
+        console.log("what")
         if(req.path !== "/maintenance"){
+          console.log("maintain")
           return res.redirect("/maintenance");
         }else{
           return res.json({
