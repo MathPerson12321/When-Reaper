@@ -377,7 +377,7 @@ async function useFreeReap(user,gamenum){
   let count = val.val()
   if(count > 0){
     //Reap
-    reap(gamenum,user.uid,true)
+    let info = reap(gamenum,user.uid,true);
     await ref.transaction((current) => {
       return (current || 0) - 1;
     });
@@ -418,7 +418,7 @@ async function addFreeReap(user, gamenum) {
 async function freeReapBonus(user,gamenum,increasecount)
 {
   //Activated when a bonus or divider is activated
-  let datapass = await db.ref(`game${gamenum}/special/freereaps/bonuspassed`);
+  let datapass = await db.ref(`game${gamenum}/special/freereaps/bonuspassed`).once("value");
   let rate = await db.ref(`game${gamenum}/special/freereaps/rate`).once("value");
   let reapspass = await datapass.once("value");
   reapspass = reapspass.val();
@@ -652,13 +652,13 @@ async function reap(gamenum,userId,isfreereap){
 
     broadcast({type:"reap", reap:reapEntry2});
 
-    return res.json({
+    return {
       success: true,
       message:"Reap successful",
       reap: reapEntry2,
       cooldown: data.cooldown,
       leaderboard,
-    });
+    };
   }catch (err){
     console.error("[REAP error]", err);
     return res.status(500).json({error:"Internal servererror"});
@@ -994,7 +994,6 @@ app.get("/game:gameid/reaps", authenticateToken, async (req, res) => {
 app.get("/game:gameid/lastuserreap", authenticateToken, async (req, res) => {
   const gamenum = req.params.gameid;
   const id = req.user.uid;
-  const username = getUsernameCached(id);
   try {
     const last = await loadLastUserReaps(gamenum);
     res.json(last);
@@ -1017,7 +1016,7 @@ app.post("/game:gameid/reap", authenticateToken, async (req, res) => {
   const gamenum = req.params.gameid;
   const userId = req.user.uid;
 
-  return reap(gamenum,userId,false) //3rd one means no freereap
+  return res.json(reap(gamenum,userId,false)); //3rd one means no freereap
 });
 
 app.get("/:gameid/gamedata", async (req, res) => {
@@ -1040,6 +1039,26 @@ app.get("/:gameid/gamedata", async (req, res) => {
     console.error(err);
     return res.status(500).json({error:"Internal servererror" });
   }
+});
+
+app.get("/getpolls", async(req,res) => {
+  const pollsSnapshot = await firestore.collection("polls").get();
+  const polls = pollsSnapshot.docs.map((doc) => {
+    return {
+      id: doc.id,
+      ...doc.data()
+    };
+  });
+  let running = {}
+  for(let i=0;i<polls.length;i++){
+    let start = polls[i].pollstart.seconds*1000
+    let end = polls[i].pollend.seconds*1000
+    if(start > Date.now() && end > Date.now()){
+      //Poll running
+      running.push(polls[i]);
+    }
+  }
+  return res.json(running);
 });
 
 app.get("/favicon.ico", (req, res, next) => {
