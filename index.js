@@ -623,7 +623,7 @@ async function reap(gamenum,userId,isfreereap){
     };
 
     reaps[reapNumber] = reapEntry;
-    lastUserReap[username] = now;
+    lastUserReap = now;
 
     if (!leaderboard[finaluser]) {
       leaderboard[finaluser] = {time: 0, reapcount: 0};
