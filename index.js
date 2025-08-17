@@ -264,8 +264,8 @@ async function loadLastUserReaps(gamenum,user) {
   return snapshot.exists() ? snapshot.val() || {} : {};
 }
 
-async function saveLastUserReaps(gamenum, obj) {
-  await db.ref(`game${gamenum}/lastuserreap`).set(obj);
+async function saveLastUserReaps(gamenum, obj, username) {
+  await db.ref(`game${gamenum}/lastuserreap/`+username).set(obj);
 }
 
 async function loadLeaderboard(gamenum) {
@@ -648,7 +648,7 @@ async function reap(gamenum,userId,isfreereap){
     }
 
     await saveReaps(gamenum, reaps);
-    await saveLastUserReaps(gamenum, lastUserReap);
+    await saveLastUserReaps(gamenum, lastUserReap, username);
     await saveLeaderboard(gamenum, leaderboard);
 
     broadcast({type:"reap", reap:reapEntry2});
@@ -995,8 +995,9 @@ app.get("/game:gameid/reaps", authenticateToken, async (req, res) => {
 app.get("/game:gameid/lastuserreap", authenticateToken, async (req, res) => {
   const gamenum = req.params.gameid;
   const id = req.user.uid;
+  const username = getUsernameCached(id)
   try {
-    const last = await loadLastUserReaps(gamenum);
+    const last = await loadLastUserReaps(gamenum,username);
     res.json(last);
   } catch (err) {
     console.error(err);
