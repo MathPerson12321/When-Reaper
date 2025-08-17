@@ -496,11 +496,11 @@ async function reap(gamenum,userId,isfreereap){
       return res.status(400).json({error:"Game has ended"});
     }
 
-    const lastUserReap = await loadLastUserReaps(gamenum,username);
-    const reaps = await loadReaps(gamenum);
-    const leaderboard = await loadLeaderboard(gamenum);
+    let lastUserReap = await loadLastUserReaps(gamenum,username);
+    let reaps = await loadReaps(gamenum);
+    let leaderboard = await loadLeaderboard(gamenum);
 
-    const userLastReap = lastUserReap || 0;
+    let userLastReap = lastUserReap || 0;
     if(!isfreereap){
       if (now - userLastReap < data.cooldown) {
         const waitTime = data.cooldown - (now - userLastReap);
