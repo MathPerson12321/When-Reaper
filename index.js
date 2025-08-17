@@ -522,10 +522,12 @@ async function reap(gamenum,userId,isfreereap){
     let bomb = "";
     let free = false;
     let sniped = false;
+    console.log(bonus)
     if(bonus[0]){
       console.log("BOMB FOR " + username)
     }
     let bombs = await getActiveBombs(gamenum)
+    console.log(bombs)
     const oldest = bombs[0];
     if(oldest){
       //The reap has been bombed.
